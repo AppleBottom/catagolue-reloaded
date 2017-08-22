@@ -1,6 +1,6 @@
 {
 	"name": "Catagolue Reloaded",
-	"version": "4.0.1",
+	"version": "4.1",
 	"manifest_version": 2,
 
 	"description": "Useful enhancements for Adam P. Goucher's Catagolue",
@@ -13,6 +13,7 @@
 		"48": "catagolue2.0_48.png",
 		"16": "catagolue2.0_16.png"
 	},
+
 	"permissions": [
 		"storage"
 	],

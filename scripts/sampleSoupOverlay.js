@@ -94,6 +94,7 @@ function overlaySoup(soupURL, soupNumber, totalSoups) {
 	var soupSelectAll      = document.createElement("p");
 	var soupSelectAllLink  = document.createElement("a");
 	var sampleSoupTextarea = document.createElement("textarea");
+	var sampleSoupLink     = document.createElement("a");
 
 	// style outer div.
 	overlayDiv.id             = "sampleSoupOverlay";
@@ -155,11 +156,18 @@ function overlaySoup(soupURL, soupNumber, totalSoups) {
 	// link to the haul containing this soup
 	haulLink.href        = haulURL;
 	haulLink.textContent = "Haul";
+
+	// link to the soup itself, in case the user wants to copy the link or
+	// see the usual "bare" soup
+	sampleSoupLink.href        = soupURL;
+	sampleSoupLink.textContent = "Soup";
  
 	// a short introductory note informing the user which soup this is.
 	// NOTE: U+2116 is the "Numero" symbol.
 	introParagraph.style.marginTop = "0";
 	introParagraph.appendChild(document.createTextNode(symmetry + " soup \u2116 " + soupNumber.toString() + " / " + totalSoups.toString() + " ("));
+	introParagraph.appendChild(sampleSoupLink);
+	introParagraph.appendChild(document.createTextNode(", "));
 	introParagraph.appendChild(haulLink);
 	introParagraph.appendChild(document.createTextNode(")"));
 
