@@ -3,7 +3,7 @@
 // @namespace   None
 // @description Various useful tweaks to Catagolue object pages.
 // @include     *://catagolue.appspot.com/object/*
-// @version     3.9
+// @version     4.0
 // @grant       none
 // ==/UserScript==
 
@@ -25,7 +25,8 @@ searchProviders["LifeWiki"]          = "http://conwaylife.com/w/index.php?title=
 searchProviders["ConwayLife forums"] = "http://conwaylife.com/forums/search.php?terms=all&author=&fid[]=3&fid[]=4&fid[]=5&fid[]=7&fid[]=11&fid[]=9&fid[]=2&fid[]=14&fid[]=12&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&t=0&submit=Search&keywords=";
 searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
 
-// width and height of the universe used for RLE conversion.
+// width and height of the universe used for RLE conversion. User-configurable
+// (options), with a default of 100x100.
 // * NOTE 1: 40x40 is the maximum object size apgsearch will recognize; larger
 // objects are classified as PATHOLOGICAL.
 // * NOTE 2: however, user-supplied apgcodes CAN encode objects exceeding this.
@@ -37,7 +38,7 @@ searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
 // j0j0d5lq23zy239g93zy2okukozy2gpppgzy212n21zwggwcp0pcwggzck5qab0c0
 // c0baq5kcz3lkb8b8efe8b8bkl3z3k2dlnwgwnld2k3z8p7o9ab151ba9o7p8z056o
 // 78p404p87o65z3jgf073x370fgj3z5u0t5j25852j5t0u5zw122d55d55d221
-var universeSize = 100;
+var universeSize = localStorage.universeSize || 100;
 
 // MAIN function.
 function MAIN() {
@@ -56,8 +57,7 @@ function MAIN() {
 
 		// FIXME: this must come after addNavLinks; it needs the 
 		// searchParagraph that addNavLinks adds.
-		// NOTE: disabled for now, until the data files are complete(ish).
-		// identifyJslifeObject(params);
+		identifyJslifeObject(params);
 
 		// FIXME: this should come after identifyJslifeObject so the elements
 		// will appear in the right order.
@@ -1182,7 +1182,7 @@ function identifyJslifeObject(params) {
 					var listOfDescriptions = infoParagraph.appendChild(document.createElement("ul"));
 
 					// add note that this object is in jslife, and add the list.
-					infoParagraph.appendChild(document.createTextNode("This object appears in jslife-20121230:"));
+					infoParagraph.appendChild(document.createTextNode("This object appears in:"));
 					infoParagraph.appendChild(listOfDescriptions);
 
 					for(var i = 0; i < jslifeDescs.length; i++) {
@@ -1201,7 +1201,7 @@ function identifyJslifeObject(params) {
 				} else {
 
 					// There's only one description to add.
-					infoParagraph.appendChild(document.createTextNode("This object appears in jslife-20121230: " + jslifeDescs[0]));
+					infoParagraph.appendChild(document.createTextNode("This object appears in: " + jslifeDescs[0]));
 
 				}
 
