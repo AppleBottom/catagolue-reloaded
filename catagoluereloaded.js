@@ -1,9 +1,9 @@
-// ==UrerScript==
+// ==UserScript==
 // @name        Catagolue Reloaded
 // @namespace   None
 // @description Various useful tweaks to Catagolue object pages.
 // @include     https://catagolue.appspot.com/object/*
-// @version     3.1
+// @version     3.4
 // @grant       none
 // ==/UserScript==
 
@@ -835,6 +835,89 @@ function bit_rol(num, cnt)
 
 /*** End of Paul Johnson's MD5 code ***/
 
+/*** ELEMENT DRAG AND DROP SUPPORT SCRIPT ***/
+
+/*****************************************************************************
+ * NOTE: script taken from http://www.quirksmode.org/js/dragdrop.html , with *
+ * the following changes:                                                    *
+ *     a) removed keyboard dragging.                                         *
+ *     b) added ability to ignore mouse clicks in a specified child.         *
+ * Event handlers taken from http://www.quirksmode.org/js/eventSimple.html . *
+ * Both written by ppk Peter-Paul Koch; no license given, but implied to be  *
+ * permissive.                                                               *
+ *****************************************************************************/
+
+var dragAndDropSupportScript = `
+
+function addEventSimple(obj,evt,fn) {
+	if (obj.addEventListener)
+		obj.addEventListener(evt,fn,false);
+	else if (obj.attachEvent)
+		obj.attachEvent('on'+evt,fn);
+}
+
+function removeEventSimple(obj,evt,fn) {
+	if (obj.removeEventListener)
+		obj.removeEventListener(evt,fn,false);
+	else if (obj.detachEvent)
+		obj.detachEvent('on'+evt,fn);
+}
+
+dragDrop = {
+	initialMouseX: undefined,
+	initialMouseY: undefined,
+	startX: undefined,
+	startY: undefined,
+	draggedObject: undefined,
+	excludedObject: undefined,
+	initElement: function (element, excl) {
+		if (typeof element == 'string')
+			element = document.getElementById(element);
+		if (typeof excl == 'string')
+			excl = document.getElementById(excl);
+		element.onmousedown = dragDrop.startDragMouse;
+		excludedObject = excl;
+	},
+	startDragMouse: function (e) {
+		if(e.target == excludedObject)
+			return true;
+		dragDrop.startDrag(this);
+		var evt = e || window.event;
+		dragDrop.initialMouseX = evt.clientX;
+		dragDrop.initialMouseY = evt.clientY;
+		addEventSimple(document,'mousemove',dragDrop.dragMouse);
+		addEventSimple(document,'mouseup',dragDrop.releaseElement);
+		return false;
+	},
+	startDrag: function (obj) {
+		if (dragDrop.draggedObject)
+			dragDrop.releaseElement();
+		dragDrop.startX = obj.offsetLeft;
+		dragDrop.startY = obj.offsetTop;
+		dragDrop.draggedObject = obj;
+		obj.className += ' dragged';
+	},
+	dragMouse: function (e) {
+		var evt = e || window.event;
+		var dX = evt.clientX - dragDrop.initialMouseX;
+		var dY = evt.clientY - dragDrop.initialMouseY;
+		dragDrop.setPosition(dX,dY);
+		return false;
+	},
+	setPosition: function (dx,dy) {
+		dragDrop.draggedObject.style.left = dragDrop.startX + dx + 'px';
+		dragDrop.draggedObject.style.top = dragDrop.startY + dy + 'px';
+	},
+	releaseElement: function() {
+		removeEventSimple(document,'mousemove',dragDrop.dragMouse);
+		removeEventSimple(document,'mouseup',dragDrop.releaseElement);
+		dragDrop.draggedObject.className = dragDrop.draggedObject.className.replace(/dragged/,'');
+		dragDrop.draggedObject = null;
+	}
+}
+
+`
+
 /*** INJECTED SAMPLE SOUP OVERLAY SCRIPT ***/
 
 var sampleSoupOverlayScript = `
@@ -988,6 +1071,10 @@ function overlaySoup(soupURL, soupNumber, totalSoups) {
     overlayInnerDiv.appendChild(soupSelectAll);
     overlayInnerDiv.appendChild(sampleSoupTextarea);
 
+	// make sample soup overlay draggable with the mouse; text area is
+	// excluded (so the user can select the sample soup with the mouse).
+	dragDrop.initElement("sampleSoupOverlay", "sampleSoupTextArea");
+
 	// asynchronous request to retrieve the soup.
     var sampleSoupRequest = new XMLHttpRequest();
 
@@ -1086,6 +1173,10 @@ function handleSampleSoups(params) {
 	// furthermore, we need to inject Paul Johnston's MD5 script, since
 	// Javascript lacks any built-in support for computing MD5 hashes.
 	injectScript(MD5Script);
+
+	// finally, we need to insert Peter-Paul Koch's element dragging script,
+	// so that the soup overlay can be dragged around the page with the mouse.
+	injectScript(dragAndDropSupportScript);
 
 	for(var i = 0; i < links.length; i++) {
 	  
