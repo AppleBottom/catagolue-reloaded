@@ -1,0 +1,20 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp22_0okiab88gzcimgl1ph5q2r9iczx6s1eie989q4oa6zy11230ehaqa9q3qic jslife-20121230, o0022.lif, row 3, object 3
+xp22_178cwggg2y2oo4kozy235433y28111w62sg jslife-20121230, o0022.lif, row 1, object 1
+xp22_178cwggg2y2oo4kozy235433y28111w62sg jslife-20121230, x-oscs-new-p020-035.lif, period 22, object 2
+xp22_31e8w444x8e13zy2nnzwo8wjjgx8oz321y6123 jslife-20121230, o0022.lif, row 2, object 2
+xp22_31e8w444x8e13zy2nnzwo8wjjgx8oz321y6123 jslife-20121230, x-oscs-1-of-each.lif, period 22
+xp22_31e8w444x8e13zy2nnzwo8wjjgx8oz321y6123 jslife-20121230, x-oscs-new-p020-035.lif, period 22, object 4
+xp22_g88r2a3qajk4owgz0122qj4ra2s3c1t5ld2sgzx641ui10c95d1e943 jslife-20121230, o0022.lif, row 3, object 4
+xp22_o8bp688gzx1iv0v0e93z32qjc221 jslife-20121230, o0022.lif, row 1, object 3
+xp22_occsgwssg0pfezwccey2scczwss602eew2ecc6zx11 jslife-20121230, o0022.lif, row 1, object 2
+xp22_occsgwssg0pfezwccey2scczwss602eew2ecc6zx11 jslife-20121230, x-oscs-new-p020-035.lif, period 22, object 5
+xp22_y0c9b8ozamge93xh9egmazx355kkm453zy13201 jslife-20121230, o0022.lif, row 1, object 4
+xp22_y0g886pabg0gbap688gz39e0v0s5whh0hhw5s0v0e93zy0123cjaq101qajc321 jslife-20121230, o0022.lif, row 2, object 4
+xp22_y0ggmkljgzok4ra2w14ar4k8zwgj2g8o03218p1zw254ra4gw8ar453zy21pl5d11 jslife-20121230, o0022.lif, row 2, object 5
+xp22_y0gjlkmggz8k4ra2w14ar4kozhh0hary1haaa4z254ra8wg4ar453zy01pl5d11 jslife-20121230, o0022.lif, row 2, object 3
+xp22_y16ppe4ggxgo4ogxoge2z0o4cx6egf710277gpdcgy3g8gz11yc1221y2af8raa4zy9g0gg04ep7zy6255t0t5yegy3o8zya1y1ggwed966y1oo4csw321zye4701y12y411 jslife-20121230, o0022.lif, row 2, object 1
+xp22_y16ppe4ggxgo4ogxoge2z0o4cx6egf710277gpdcgy3g8gz11yc1221y2af8raa4zy9g0gg04ep7zy6255t0t5yegy3o8zya1y1ggwed966y1oo4csw321zye4701y12y411 jslife-20121230, x-oscs-new-p020-035.lif, period 22, object 3
+xp22_y1882u0o8b5oxo5b8o0u288zggwo81252w629e1e926w25218owggzd870vix72xgg0ggx27xiv078dzy1gk2t2ogj2s343s2jgo2t2kgzy323x65y156x32 jslife-20121230, o0022.lif, row 3, object 1
+xp22_y1882u0o8b5oxo5b8o0u288zggwo81252w629e1e926w25218owggzd870vix72xgg0ggx27xiv078dzy1gk2t2ogj2s343s2jgo2t2kgzy323x65y156x32 jslife-20121230, x-oscs-new-p020-035.lif, period 22, object 1
+xp22_y331e8w444x8e13zggy7nny9ggz1074x2iixjjgy12iiw4701zy4rry8rrzg0s4x899xpp1y1899w4s0gz11y7tty911zy3oge2w444x2ego jslife-20121230, o0022.lif, row 3, object 2

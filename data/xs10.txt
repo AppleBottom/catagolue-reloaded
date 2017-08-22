@@ -1,0 +1,26 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xs10_0cp3z32 jslife-20121230, o0001.lif, row 4, object 7
+xs10_0drz32 jslife-20121230, o0001.lif, row 4, object 6
+xs10_0j96z32 jslife-20121230, o0001.lif, row 4, object 11
+xs10_1784213 jslife-20121230, o0001.lif, row 5, object 6
+xs10_1784ko jslife-20121230, o0001.lif, row 5, object 5
+xs10_178ka4 jslife-20121230, o0001.lif, row 5, object 3
+xs10_178kk8 jslife-20121230, o0001.lif, row 5, object 1
+xs10_25a8426 jslife-20121230, o0001.lif, row 4, object 10
+xs10_2eg853 jslife-20121230, o0001.lif, row 5, object 7
+xs10_31eg8o jslife-20121230, o0001.lif, row 4, object 14
+xs10_3215ac jslife-20121230, o0001.lif, row 4, object 9
+xs10_32qr jslife-20121230, o0001.lif, row 5, object 9
+xs10_3542ac jslife-20121230, o0001.lif, row 4, object 8
+xs10_358gkc jslife-20121230, o0001.lif, row 4, object 12
+xs10_35ako jslife-20121230, o0001.lif, row 4, object 1
+xs10_4al96 jslife-20121230, o0001.lif, row 5, object 10
+xs10_69ar jslife-20121230, o0001.lif, row 5, object 8
+xs10_drz32 jslife-20121230, o0001.lif, row 4, object 5
+xs10_g0s252z11 jslife-20121230, o0001.lif, row 4, object 13
+xs10_g8ka52z01 jslife-20121230, o0001.lif, row 4, object 2
+xs10_g8o652z01 jslife-20121230, o0001.lif, row 5, object 11
+xs10_ggka23z1 jslife-20121230, o0001.lif, row 5, object 4
+xs10_ggka52z1 jslife-20121230, o0001.lif, row 5, object 2
+xs10_wg853z65 jslife-20121230, o0001.lif, row 4, object 3
+xs10_xg853z321 jslife-20121230, o0001.lif, row 4, object 4

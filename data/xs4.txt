@@ -1,0 +1,4 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xs4_252 jslife-20121230, o0001.lif, row 1, object 2
+xs4_33 jslife-20121230, o0001.lif, row 1, object 1
+xs4_33 jslife-20121230, x-oscs-1-of-each.lif, period 1

@@ -1,0 +1,5 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xs7_178c jslife-20121230, o0001.lif, row 1, object 12
+xs7_2596 jslife-20121230, o0001.lif, row 1, object 11
+xs7_25ac jslife-20121230, o0001.lif, row 1, object 9
+xs7_3lo jslife-20121230, o0001.lif, row 1, object 10

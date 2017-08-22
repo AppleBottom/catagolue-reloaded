@@ -1,0 +1,9 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp27_06ic88c170v18k4ozkf0v5p1p5t445p6o3tgz11w1169m96p5klkwaabgzy712102egm95d jslife-20121230, o0027.lif, row 2, object 2
+xp27_06ic88c170v18k4ozkf0v5p1p5t445p6o3tgz11w1169m96p5klkwaabgzy712102egm95d jslife-20121230, x-oscs-new-p020-035.lif, period 27, object 1
+xp27_wg88rb8oy5ogz6i2t4mkey1g8wgc73xj9e0o4cz011w346x6fpy5ojhrhla23zyl66 jslife-20121230, o0027.lif, row 2, object 1
+xp27_y48kkjapjgozwgy4126ac0f9zw1156y434t1fg4czy4757y211zg08k4oy1757z110nk5hmy4354czx47o9aric88gzy3642611 jslife-20121230, o0027.lif, row 1, object 2
+xp27_y48kkjapjgozwgy4126ac0f9zw1156y434t1fg4czy4757y211zg08k4oy1757z110nk5hmy4354czx47o9aric88gzy3642611 jslife-20121230, x-oscs-new-p020-035.lif, period 27, object 2
+xp27_y9330gzyb1789azy08q987yfooz33yfs2ib2zy6ai2sgzy910oo jslife-20121230, o0027.lif, row 1, object 1
+xp27_y9330gzyb1789azy08q987yfooz33yfs2ib2zy6ai2sgzy910oo jslife-20121230, x-oscs-1-of-each.lif, period 27
+xp27_y9330gzyb1789azy08q987yfooz33yfs2ib2zy6ai2sgzy910oo jslife-20121230, x-oscs-new-p020-035.lif, period 27, object 3

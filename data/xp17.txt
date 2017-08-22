@@ -1,0 +1,4 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp17_xg88r2q487p8gzci4ra0s254ll6p7oi6z116871y1343 jslife-20121230, o0017.lif, row 1, object 2
+xp17_xo4o796o8gzc93s254ll6p7oi6zx11x343 jslife-20121230, o0017.lif, row 1, object 1
+xp17_xo4o796o8gzc93s254ll6p7oi6zx11x343 jslife-20121230, x-oscs-1-of-each.lif, period 17

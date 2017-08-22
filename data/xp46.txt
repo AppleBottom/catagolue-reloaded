@@ -1,0 +1,11 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp46_033y133zzzckgsxsgkczz0ccy1cc jslife-20121230, o0046.lif, row 1, object 1
+xp46_033y133zzzckgsxsgkczz0ccy1cc jslife-20121230, x-oscs-1-of-each.lif, period 46
+xp46_330279cx1aad3y833zx4e93x855bc jslife-20121230, o0046.lif, row 2, object 1
+xp46_330279cx1aad3ybggg070ggg0279cx1aad3y833zcc04e93x855bcyfey14e93x855bcy8cc jslife-20121230, x-oscs-new-p036-060.lif, period 46, object 1
+xp46_33y7c20197y96e9dceckk8zccy734089ey4cc jslife-20121230, o0046.lif, row 4, object 2
+xp46_33y7c20197y96e9dceckk8zccy734089ey4cc jslife-20121230, x-oscs-new-p036-060.lif, period 46, object 2
+xp46_66w33y133w66zxok4sxs4kozzzccwooy1oowcc jslife-20121230, o0046.lif, row 4, object 1
+xp46_x8e1e8zzzckgsxsgkczzx17871 jslife-20121230, o0046.lif, row 3, object 1
+xp46_yk33y133zzzyjckgsxsgkczooy3o4cytc4oy3oozy5hhhy6rry5rry6hhhz33y3346yt643y333zyj6517x7156zzzykooy1oo jslife-20121230, o0046.lif, row 5, object 2
+xp46_yk33y133zzzyjckgsxsgkczooy3o4cytc4oy3oozy5hhhy6rry5rry6hhhz33y3346yt643y333zyj6517x7156zzzykooy1oo jslife-20121230, x-oscs-new-p036-060.lif, period 46, object 3

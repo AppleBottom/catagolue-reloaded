@@ -1,0 +1,11 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xs14_178kk871 jslife-20121230, o0001.lif, row 7, object 7
+xs14_39e0e93 jslife-20121230, o0001.lif, row 7, object 5
+xs14_4aaraa4 jslife-20121230, o0001.lif, row 7, object 8
+xs14_6970796 jslife-20121230, o0001.lif, row 6, object 9
+xs14_69bo8a6 jslife-20121230, o0001.lif, row 7, object 4
+xs14_69bqic jslife-20121230, o0001.lif, row 6, object 3
+xs14_69f0f9 jslife-20121230, o0001.lif, row 7, object 6
+xs14_g88b96z123 jslife-20121230, o0001.lif, row 6, object 4
+xs14_g88m952z121 jslife-20121230, o0001.lif, row 6, object 2
+xs14_j1u066z11 jslife-20121230, o0001.lif, row 6, object 10

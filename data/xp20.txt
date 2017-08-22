@@ -1,0 +1,12 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp20_0jhe8gxg8gz122dl56o8ghzy1123cjc32ac jslife-20121230, o0020.lif, row 1, object 1
+xp20_35426ow37bkicz65123 jslife-20121230, o0020.lif, row 2, object 1
+xp20_o8go4q2s0v9z4aaqi9j9iqa96zzoox8c8xoozxg88888gzi5ll48c84l596z110125430f9 jslife-20121230, o0020.lif, row 1, object 2
+xp20_o8go4q2s0v9z4aaqi9j9iqa96zzoox8c8xoozxg88888gzi5ll48c84l596z110125430f9 jslife-20121230, x-oscs-1-of-each.lif, period 20
+xp20_o8go4q2s0v9z4aaqi9j9iqa96zzoox8c8xoozxg88888gzi5ll48c84l596z110125430f9 jslife-20121230, x-oscs-new-p020-035.lif, period 20, object 2
+xp20_xpf0si6gu1eoy5oe1ugeis0fpzxcr0s4g4s0rcy0ey0fr3s4o4s3rfz255lo0o5d0v0viw24e62wiv0v0t5o0ol552zxpm0p909p0mpy5vm6p9g9p6mvzx4701230343y73430321074 jslife-20121230, x-oscs-new-p020-035.lif, period 20, object 1
+xp20_xpf0si6gu1eozxcr0s4g4s0rcy0ew43c2z255lo0o5d0v0viw24e62wgzxpm0p909p0mpy31612zx4701230343 jslife-20121230, o0020.lif, row 3, object 1
+xp20_y0o8go4q2s0v9zy04aaqisusiqa96z697o4cxgggxc4o796z0evvy1242y1vvezcis34akgosssogka43siczx3552y32553 jslife-20121230, o0020.lif, row 2, object 2
+xp20_y135s26062s53zo4s0ggw1vrv1y2ggz010vspxg98y062sj43zg8gfjpx30iy2vf7z123y3232x321e96zy2g8ehv3vhe8gzy211y311 jslife-20121230, o0020.lif, row 1, object 3
+xp20_y1o8go4q2s0v9z0ggw4aaqi9j9iqa96z34js26y0ooy2oe1t28c88cz07fvy13421y1ql0q7ll96z69e123ckgosssogkcw343056zy03552y32553 jslife-20121230, o0020.lif, row 2, object 3
+xp20_y32c34zw45a208ka52066zcc0ccx66w653w2c34zwg8keey145a2zw1221 jslife-20121230, o0020.lif, row 1, object 4

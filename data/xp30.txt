@@ -1,0 +1,43 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp30_075777757y4uquzy1cgow651y0fbfzuquy0gkcw316zfbfy4skssssks jslife-20121230, o0030.lif, row 4, object 7
+xp30_0g08fz304441xskszx7y1vnv jslife-20121230, o0030.lif, row 3, object 7
+xp30_0g08fz304441xskszx7y1vnv jslife-20121230, x-oscs-new-p020-035.lif, period 30, object 6
+xp30_0g8o69b8oz6b8ngl5q2llmggz253w110110ca23zy0cc0fh4qky1g8gy1g8gzx255dhaarp62y01y31zy7a44y0osoxosoy18ec8a6zys2e62ac jslife-20121230, o0030.lif, row 5, object 1
+xp30_0g8o69b8oz6b8ngl5q2llmggz253w110110ca23zy0cc0fh4qky1g8gy1g8gzx255dhaarp62y01y31zy7a44y0osoxosoy18ec8a6zys2e62ac jslife-20121230, x-oscs-new-p020-035.lif, period 30, object 5
+xp30_178czy4s48zzyb351y6ogzy1ccy63s2k8077xof72y366zyd301 jslife-20121230, o0030-gun.lif, row 1 ("A"), object 1
+xp30_252xeaey2252zg8gxsksxcy58k8z01ya44zybeaexeaezya8k8y18k8 jslife-20121230, o0030.lif, row 4, object 4
+xp30_252y1252z04r4x4r4zz252y1252 jslife-20121230, o0030.lif, row 4, object 1
+xp30_252y1252z04r4x4r4zz252y1252 jslife-20121230, x-djb-oscillators.lif, group 17, object 2
+xp30_252y1252z04r4x4r4zzz04r4x4r4z8k8y18k8 jslife-20121230, o0030.lif, row 4, object 2
+xp30_252y1252z06e6x6e6zzz0eaexeaez8k8y18k8 jslife-20121230, o0030.lif, row 4, object 3
+xp30_252yaiu0o8geik8xc4o0o4cggzehhhe0ehhhey15q2or4rggc0440cd3sl50v4gozy588y15aq0ujba4ll453wojd453z252yb122687101 jslife-20121230, o0030.lif, row 4, object 5
+xp30_32aczw8kqrqk8zzzy033 jslife-20121230, o0030.lif, row 2, object 1
+xp30_4evy2ve4w2a606a2w4evy2ve4 jslife-20121230, o0030.lif, row 1, object 6
+xp30_75777757y7ggz20sws02y6gpg9y0gy2gz1y21y0i1j1y6807w708zy911y7skssssks jslife-20121230, o0030.lif, row 2, object 3
+xp30_ccx8k2s3y58kk808k2s3y6cczy3103yc103 jslife-20121230, o0030.lif, row 1, object 3
+xp30_ccx8k2s3y58kk8zy3103y6oox8k2s3y6oozyn103 jslife-20121230, o0030.lif, row 2, object 2
+xp30_ccx8k2s3y58kk8zy3103y6oox8k2s3y6oozyn103 jslife-20121230, x-oscs-new-p020-035.lif, period 30, object 1
+xp30_ccx8k2s3y6cczwsy0103zooy63s2k8xoozy8301 jslife-20121230, o0030.lif, row 3, object 2
+xp30_ccx8s2tuy6cczy312hy6oowg84o6y6oozccx4ahehy6ccx1216zy51y5oox8s2tuy6oozym121 jslife-20121230, o0030.lif, row 1, object 4
+xp30_ccx8s2tuy6cczy312hy6oowg84o6y6oozccx4ahehy6ccx1216zy51y5oox8s2tuy6oozym121 jslife-20121230, x-oscs-new-p020-035.lif, period 30, object 3
+xp30_oox8k2s3zy3103y531e8 jslife-20121230, o0030.lif, row 3, object 1
+xp30_w252xeaey8o8ox8k8zg8gxsksy8ggh11z01yf323x252 jslife-20121230, o0030.lif, row 6, object 3
+xp30_w252xee4y2252zy4ss8xgsszy688zxm2oc0dokkod0co2mz255lq2l4fy0f4l2ql552zwc4o7obgm44mgbo7o4czc48ngp9o74w47o9pgn84czx6221y41226 jslife-20121230, x-oscs-new-p020-035.lif, period 30, object 4
+xp30_w33z8kqrqk8zzzw33 jslife-20121230, o0030.lif, row 1, object 1
+xp30_w33z8kqrqk8zzzw33 jslife-20121230, x-oscs-1-of-each.lif, period 30
+xp30_wggc4o0o4cx8kieg8o0uiyco4km1e8goy1ggzog4v05ls3dc0440cggr4ro2q5y1cksy1al5gnctliaa2acw1sr2as0ggzx354djow354ll4abju0qa5y9alk1t2t0gj02203bs3qa0vi01zya101786221yc4701107421x3210123 jslife-20121230, o0030.lif, row 6, object 4
+xp30_xg8oy53s2k8w252zx11y6301gka9akgzz15aia51y78owg88gy4gzwooy8311x12ihy4heha4xcczyi4701y41 jslife-20121230, o0030.lif, row 3, object 3
+xp30_xggc9bqiczcit2obx8c0s4oz062210o4q59aj2li1u0oozwrb8b1cfc0e88g01zx1130f86019f023 jslife-20121230, o0030.lif, row 4, object 8
+xp30_xggcid1eoz6a8ngmhm1t6x2696zxpi6221y06agiga6zyho4a51196zya88skkw3442 jslife-20121230, o0030.lif, row 3, object 4
+xp30_y3ggy1og8e1mk4oy1jpuwupjzgg0sa2rs1wca2aailtcng5lay110g1y1iu0o8geik8xc4o0o4cggz10iv0aq3sb30220jg0t2t1klay17x86w5q2or4rggc0440cd3sl50v4gozy03210123x1247011074xggowoggx5aq0ujba4ll453wojd453zync97w79cy1122687101 jslife-20121230, o0030.lif, row 5, object 2
+xp30_y3o8go4a2c0v9zy34aaq21312qa96zy711111c4o8x44a4444a44z88k8888k88zy9o4kmh1h1hmkk8zya14u0dhl86246zyb11 jslife-20121230, o0030.lif, row 3, object 6
+xp30_y3o8go4a2c0v9zy34aaq21312qa96zy711111c4o8x44a4444a44z88k8888k88zy9o4kmh1h1hmkk8zya14u0dhl86246zyb11 jslife-20121230, x-oscs-new-p020-035.lif, period 30, object 7
+xp30_y3o8go4q2s0v9zy34aaqi9j9iqa96y1ca23zyiccy1cg952066zy1ccy44qa0ab4y466zcc08ki16y166zy4o8a6y1ciab9ipi9baa4zyfiv078b43123 jslife-20121230, o0030.lif, row 4, object 6
+xp30_y3o8go4q2s0v9zy34aaqi9j9iqa96y1ca23zyiccy1cg952066zy1ccy44qa0ab4y466zcc08ki16y166zy4o8a6y1ciab9ipi9baa4zyfiv078b43123 jslife-20121230, x-oscs-new-p020-035.lif, period 30, object 8
+xp30_y4jbgzx3302540hz66066w4ehevy666zy61 jslife-20121230, x-oscs-new-p020-035.lif, period 30, object 2
+xp30_y5o80g886pb8ozy7178lkga2alliczybgh272hgzy5gjl4s3of707fo3s4ljgzy43201wouwswuow1023zc88c82t1eoz069ll7q0lqy1757zx650343 jslife-20121230, o0030.lif, row 5, object 4
+xp30_y74a4x11ws8x4a4z4evy2ve4y4goy24evy2ve4z0goy2ogy111xhy3goy2ogz137y2731y413y2137y2731z8suy2us8y011w27y28suy2us8zw1y2108k8y3e4x8k801y21zyd11 jslife-20121230, o0030.lif, row 6, object 1
+xp30_yagcgy0svszyagfgy0gpgz8eh5u0u5he8gx3y13f3y9gs2mk4oggz2eh5c1l0l011vw44a44y544a44wvgg0l0lg6khe8zx11345d871y9ouoy1ox12ehkf0fkhe2zyl1j1y01u1zyl7v7y0161 jslife-20121230, o0030.lif, row 5, object 3
+xp30_yb252y1252zyc464x464zz252x4ey3c813x318cy3e4x252zg8gx8sy3c40gxg04cy3s8xg8gz01yb11x11yb1zyc8o8x8o8zybg8gy1g8gzyc1y31 jslife-20121230, o0030.lif, row 6, object 2
+xp30_yb33zy8gka9akgzyjg8gczyda64w1243cy633zccy63s2k8w265zy8301y1ggxggzyh25952zyicc jslife-20121230, o0030.lif, row 3, object 5
+xp30_yh8k2s3y6oozggy0g8gcy32596w103z11x1243c jslife-20121230, o0030.lif, row 1, object 2

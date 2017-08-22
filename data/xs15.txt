@@ -1,0 +1,2 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xs15_354cgc453 jslife-20121230, o0001.lif, row 6, object 8

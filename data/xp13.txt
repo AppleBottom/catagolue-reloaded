@@ -1,0 +1,18 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp13_04s0g88bahm88cz9v0ml113k2a1u08k8z2js16aab85la9ozy33121 jslife-20121230, o0013.lif, row 3, object 2
+xp13_0g8kkjap5q88gzbc1u0m4ngf2o7oi6zx1255c22qj43 jslife-20121230, o0013.lif, row 2, object 5
+xp13_8o0o4aab88gz32ql1phld3o74zx34520f9 jslife-20121230, o0013.lif, row 2, object 4
+xp13_8o6pajk4oz32q926m18v1e8z321x9f032 jslife-20121230, o0013.lif, row 3, object 1
+xp13_c826gdbw8kkoz04s3khlrllmzx122qq221 jslife-20121230, o0013.lif, row 2, object 3
+xp13_g08kkjaqbzd5he8w4abk46z08k9bp55l5dzx11x11 jslife-20121230, o0013.lif, row 2, object 2
+xp13_g88bdggzdlgg5qajozx65 jslife-20121230, o0013.lif, row 1, object 3
+xp13_g88e1e8z0113033xokczy4araaaa4z0ggo0oox356z122ege2 jslife-20121230, o0013.lif, row 2, object 1
+xp13_gy1gr3zd5a64210g8c4066zy2kr6og jslife-20121230, o0013.lif, row 1, object 1
+xp13_gy1gr3zd5a64210g8c4066zy2kr6og jslife-20121230, x-oscs-1-of-each.lif, period 13
+xp13_gy1gr3zd5a64210g8c4066zy2kr6og jslife-20121230, x-oscs-new-p001-019.lif, period 13, object 1
+xp13_o80g88r5ozar0lhhaahla4z320122rk3 jslife-20121230, o0013.lif, row 1, object 4
+xp13_o8bq9jzx64lp1e8gzcr0qiai2th1z23y03201 jslife-20121230, o0013.lif, row 3, object 3
+xp13_w8e1e8z3113033xokczy4araaaa4zoggo0oox356zw2ege2 jslife-20121230, x-djb-oscillators.lif, group 11, object 2
+xp13_xj9ab8ba9jz624bao787oab426zy1c95d jslife-20121230, o0013.lif, row 1, object 5
+xp13_xmk9b8b9kmz641u0v0g0v0u146zy0pgf0fgp jslife-20121230, o0013.lif, row 1, object 6
+xp13_y38i3ry3gni6zgo0488wh8s8woow3543g88g08oz11011w1jhy6gg12330111zggg0oo8g11y6hpgwgg0ggz03201221o4kow33w272hw224031zy4c9t1y3ro92 jslife-20121230, o0013.lif, row 1, object 2
