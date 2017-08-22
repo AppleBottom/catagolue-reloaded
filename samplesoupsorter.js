@@ -3,7 +3,7 @@
 // @namespace   None
 // @description Sorts sample soup links on Catagolue object pages by symmetry.
 // @include     https://catagolue.appspot.com/object/*
-// @version     2.0
+// @version     2.1
 // @grant       none
 // ==/UserScript==
 
@@ -167,6 +167,30 @@ function ruleSlashedUpper(rule) {
 
 }
 
+// debugging function: return a pattern object as a string, suitable for
+// visual inspection (e.g. using console.log).
+function patternToString(patternObject) {
+
+	// string to return
+	var strPattern = "";
+
+	// read pattern line by line
+	for(var i = 0; i <= patternObject["by"]; i++) {
+		for(var j = 0; j <= patternObject["bx"]; j++) {
+
+			// live cells are represented by an O, dead ones by a .
+			if(patternObject["pattern"][j][i])
+				strPattern += "O";
+			else
+				strPattern += ".";
+		}
+
+		// add a linebreak at the end of each pattern line
+		strPattern += "\n";
+	}
+
+	return strPattern;
+}
 
 /************************************
  * apgcode-related helper functions *
@@ -189,8 +213,8 @@ function apgcodeDecodeWXY(code) {
 
 	// finally, replace w and x with 2 and 3 zeroes, respectively.
 	// NOTE: this needs to come last so yw and yx will be handled correctly.
-	code = code.replace("w", "00");
-	code = code.replace("x", "000");
+	code = code.replace(new RegExp("w", "g"), "00");
+	code = code.replace(new RegExp("x", "g"), "000");
 
 	return code;
 
