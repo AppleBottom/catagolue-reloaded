@@ -3,7 +3,7 @@
 // @namespace   None
 // @description Various useful tweaks to Catagolue object pages.
 // @include     *://catagolue.appspot.com/object/*
-// @version     3.8
+// @version     3.9
 // @grant       none
 // ==/UserScript==
 
@@ -13,6 +13,11 @@
 var breadcrumbSeparator = " » "; // Alternatively: > or ›
 var genericSeparator    = " • ";
 
+// symbols to use for collapsed/expanded comments. These should match the
+// values in scripts/comments.js .
+var commentCollapsedSymbol = "▶ " // U+25B6 BLACK RIGHT-POINTING TRIANGLE
+var commentExpandedSymbol  = "▼ " // U+25BC BLACK DOWN-POINTING TRIANGLE
+
 // list of search providers to link to on object pages.
 var searchProviders = new Object;
 
@@ -20,8 +25,7 @@ searchProviders["LifeWiki"]          = "http://conwaylife.com/w/index.php?title=
 searchProviders["ConwayLife forums"] = "http://conwaylife.com/forums/search.php?terms=all&author=&fid[]=3&fid[]=4&fid[]=5&fid[]=7&fid[]=11&fid[]=9&fid[]=2&fid[]=14&fid[]=12&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&t=0&submit=Search&keywords=";
 searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
 
-// width and height of the universe used for RLE conversion. User-configurable
-// (options), with a default of 100x100.
+// width and height of the universe used for RLE conversion.
 // * NOTE 1: 40x40 is the maximum object size apgsearch will recognize; larger
 // objects are classified as PATHOLOGICAL.
 // * NOTE 2: however, user-supplied apgcodes CAN encode objects exceeding this.
@@ -48,9 +52,16 @@ function MAIN() {
 		handleSampleSoups   (params);
 		objectToRLE         (params);
 		addImgLink          (params);
+		handleComments      (params);
 
-		// FIXME: this must come after addNavLinks; it needs the searchParagraph that addNavLinks adds.
-//		identifyJslifeObject(params); // disabled until data files are completed.
+		// FIXME: this must come after addNavLinks; it needs the 
+		// searchParagraph that addNavLinks adds.
+		// NOTE: disabled for now, until the data files are complete(ish).
+		// identifyJslifeObject(params);
+
+		// FIXME: this should come after identifyJslifeObject so the elements
+		// will appear in the right order.
+		addApgcodeSubheading(params);
 
 	} else {
 
@@ -67,10 +78,16 @@ function MAIN() {
 // find the heading containing the object's code
 function findTitleHeading() {
 
-	// find the content div; the heading is (currently) its first child.
+	// find the content div; the heading is (currently) its first H2 child.
+	// note that we really need to search for a H2 here; other functions may
+	// insert elements into the content div before it, notably the breadcrumbs
+	// navigation.
 	var content = document.getElementById("content");
 	if(content)
-		return content.firstElementChild;
+		for(var candidate = content.firstElementChild; candidate; candidate = candidate.nextElementSibling) {
+			if(candidate.tagName == "H2")
+				return candidate;
+		}
 
 	// this shouldn't happen unless the page layout changes.
 	return null;
@@ -141,18 +158,28 @@ function appendHR(node) {
 // read and return apgcode, rulestring etc.
 function readParams() {
 
-	// regular expression to extract apgcode and rulestring from the page URL
-	var locRegex = /object\/(.*?)\/(.*)/;
+	// regular expression to extract apgcode and rulestring from page URL
+	var locRegex  = /object\/(.*?)\/(.*)/;
+
+	// regular expression to extract query string from page URL
+	var locRegex2 = /object\?(.*)/;
 
 	// regular expression to extract prefix and encoded object from apgcode
 	var codeRegex = /^(.*?)_(.*)$/;
 
+	// hash of extracted page parameters
+	var params = new Object;
+
+	// we may not be able to extract/determine the symmetry, so just set it
+	// to null explicitely.
+	params["symmetry"] = null;
+
+	// parameters extracted from URL go here.
+	
+	// Handle "regular" locations, e.g.
+	// https://catagolue.appspot.com/object/xs4_33/b3s23/C1
 	var matches = locRegex.exec(document.location);
 	if(matches) {
-
-		var params = new Object;
-
-		// parameters extracted from URL go here.
 
 		params["apgcode"] = matches[1];
 
@@ -162,7 +189,6 @@ function readParams() {
 		if(matches[2].indexOf("/") == -1) {
 
 			params["rule"    ] = matches[2];
-			params["symmetry"] = null;
 
 		} else {
 
@@ -173,32 +199,73 @@ function readParams() {
 
 		}
 
-		// pathologicals do not have an object code apart from the prefix
-		// itself.
-		if(matches[1] == "PATHOLOGICAL") {
+	} else {
 
-			params["prefix"] = "PATHOLOGICAL";
-			params["object"] = "";
+		// handle search-based locations, e.g.
+		// http://catagolue.appspot.com/object?apgcode=xs10_69ar&rule=b3s2-i34q
+		matches = locRegex2.exec(document.location);
 
-		} else {
+		// if neither of these regexes matched, we give up.
+		if(!matches)
+			return null;
 
-			// separate prefix from code proper.
-			// FIXME: shouldn't simply assume this succeeds, I guess.
-			var pieces = codeRegex.exec(matches[1]);
+		// query parameters, e.g. "apgcode=xs10_69ar&rule=b3s2-i34q"
+		var queryParameterString = matches[1];
 
-			params["prefix" ] = pieces[1];
-			params["object" ] = pieces[2];
+		// split these into individual key/value pairs and look at each.
+		var queryParameters = queryParameterString.split("&");
+		for(var i = 0; i < queryParameters.length; i++) {
+
+			// split this pair into key and value.
+			var pieces = queryParameters[i].split("=", 2);
+
+			if(pieces[0] == "apgcode")
+				params["apgcode" ] = pieces[1];
+			else if(pieces[0] == "rule")
+				params["rule"    ] = pieces[1];
+			else if(pieces[0] == "symmetry")
+				params["symmetry"] = pieces[1];
+			else
+				console.log("Unknown query parameter: " + queryParameters[i]);
 
 		}
-
-		// other parameters go here.
-		// (none yet)
-
-		return params;
+		
 	}
 
-	// location didn't match.
-	return null;
+	// at this point, we SHOULD have extract an apgcode at the very least. If
+	// not, bail out.
+	if(!params["apgcode"])
+		return null;
+
+	// pathologicals do not have an object code apart from the prefix
+	// itself.
+	if(params["apgcode"] == "PATHOLOGICAL") {
+
+		params["prefix"] = "PATHOLOGICAL";
+		params["object"] = "";
+
+	} else {
+
+		// separate prefix from code proper.
+		// FIXME: shouldn't simply assume this succeeds, I guess.
+		var pieces = codeRegex.exec(params["apgcode"]);
+
+		params["prefix" ] = pieces[1];
+		params["object" ] = pieces[2];
+
+	}
+
+	// other parameters go here.
+
+	// find title heading
+	var titleHeading = findTitleHeading();
+
+	// if this object has a name (other than its apgcode), remember that.
+	if(titleHeading.textContent != params["apgcode"])
+		params["name"] = titleHeading.textContent;
+
+	// return final collection of parameters.
+	return params;
 
 }
 
@@ -231,7 +298,17 @@ function insertAfter(newNode, refNode) {
 	else
 		// if the reference node is the last child, append the new node to the
 		// parent node.
-		refNode.parentNode.append(newNode);
+		refNode.parentNode.appendChild(newNode);
+
+}
+
+// add a new class to a node.
+function addClass(node, className) {
+
+	if(node.getAttribute("class"))
+		node.setAttribute("class", node.getAttribute("class") + " " + className);
+	else
+		node.setAttribute("class", className);
 
 }
 
@@ -852,6 +929,168 @@ function addNavLinks(params) {
 
 }
 
+function handleComments(params) {
+
+	// regex to extract metadata for all comments.
+	var commentsHeaderRegex = /^Displaying\scomments\s+(\d+)\s+to\s+(\d+).$/;
+
+	// regex to extract metadata for a single comment.
+	var commentHeaderRegex = /^On\s+(\d{4}-\d{2}-\d{2})\s+at\s+(\d{2}:\d{2}:\d{2})\s+UTC,\s+(< >)?(.*?)(<\/b>)?\s+wrote:$/;
+
+	// the page's main content div.
+	var contentDiv  = document.getElementById("content");
+
+	// collection of comments (i.e. "comtent" divs).
+	var commentDivs = new Array();
+
+	// comments header, i.e. the paragraph containing e.g. "Displaying 
+	// comments 1 to 1."
+	var commentsHeader;
+
+	// comments are not identified other than by all sharing the id "comment",
+	// and by being children of contentDiv. This means easy methods of
+	// extracting them from the page are out; we have to bite the bullet and
+	// hunt for them. Note that each comment div contains a single inner
+	// div with the id "comtent", which is what we're interested in.
+	for(var commentCandidate = contentDiv.firstElementChild; commentCandidate; commentCandidate = commentCandidate.nextElementSibling) {
+
+		// also look for the comments header on the side.
+		// (Side note: why does nodeName contain upper-case names? This isn't
+		// HTML 3.2.)
+		if(commentCandidate.nodeName == "P")
+			if(commentsHeaderRegex.test(commentCandidate.innerHTML))
+				commentsHeader = commentCandidate;
+
+		// verify if node has the right id.
+		if(commentCandidate.getAttribute("id") == "comment")
+
+			// iterate through all of this comment's children to find the
+			// "comtent".
+			for(var comtentCandidate = commentCandidate.firstElementChild; comtentCandidate; comtentCandidate = comtentCandidate.nextElementSibling) {
+
+				// again, we need to make sure that node has the right id.
+				if(comtentCandidate.getAttribute("id") == "comtent")
+					commentDivs.push(comtentCandidate);
+
+			}
+
+	}
+
+	// return early if there's no comments on the page.
+	if(!commentDivs.length)
+		return;
+
+	// inject comment handler script; this takes care of actually expanding/
+	// collapsing comments.
+	injectScript("comments.js");
+
+	// iterate through all comments.
+	for(var i = 0; i < commentDivs.length; i++) {
+
+		// extract relevant elements
+		var commentDiv    = commentDivs[i];
+		var commentHeader = commentDiv.firstElementChild;
+
+		// the comment body may consist of several successive HTML elements.
+		// we therefore introduce a new intermediate div containing them, for
+		// the sake of easily being able to act on all of them at once.
+		// NOTE: for an example of this, see e.g. the first (oldest) comment on
+		// xp16_y57ey9e7zgggy58ogy1go8y5gggz0111y0cogx11x11xgocy0111zy6h
+		// y9hz0gggy0631xggxggx136y0gggz111y5231y1132y5111zy5sey9es (Achim's
+		// other p16).
+		var commentBody   = document.createElement("div");
+
+		// array to hold all the elements making up the comment body
+		var commentElements = new Array();
+
+		// we first collect all the element into an array.
+		for(var commentElement = commentHeader.nextSibling; commentElement; commentElement = commentElement.nextSibling) {
+			commentElements.push(commentElement);
+		}
+		// only after we're done collecting the elements do we move them and
+		// append them as children to the new comment body div.
+		// NOTE: the reason this isn't done in ONE loop, without using the
+		// array at all, is that these are live elements. If we didn't jump
+		// through this extra hoop, then after appending the first comment
+		// element to the new comment body div, its nextSibling property would
+		// be undefined, as in its new position it did indeed not have any
+		// sibling elements. For this reason, we cannot move ANY of the
+		// elements until we have found ALL of them.
+		for(var j = 0; j < commentElements.length; j++) {
+			commentBody.appendChild(commentElements[j]);
+		}
+
+		// insert the new comment body div after the comment header.
+		insertAfter(commentBody, commentHeader);
+
+		// attempt to match comment regex
+		var matches = commentHeaderRegex.exec(commentHeader.innerHTML);
+		if(matches) {
+
+			// extract information from matches
+			var commentDate = matches[1];
+			var commentTime = matches[2];
+			var commentAnon = (typeof matches[3] === "undefined");
+			var commentName = matches[4];
+
+			// comment name with spaces removed. Note all non-space characters
+			// are allowed as part of class names as per the HTML5 spec:
+			// https://www.w3.org/TR/html5/infrastructure.html#set-of-space-separated-tokens
+			var commentNameClass = commentName.replace(/\s/g, "");
+
+			// add classes to elements according to comment number and author.
+			addClass(commentDiv,    "comment        comment-"        + i + " comment-author-"        + commentNameClass);
+			addClass(commentHeader, "comment-header comment-header-" + i + " comment-header-author-" + commentNameClass);
+			addClass(commentBody,   "comment-body   comment-body-"   + i + " comment-body-author-"   + commentNameClass);
+
+			// create a clickable expander/collapser
+			var commentExpander = document.createElement("span");
+
+			// add style and attributes
+			commentExpander.style.fontFamily = "monospace";
+			commentExpander.style.cursor     = "pointer";
+			commentExpander.appendChild(document.createTextNode(commentExpandedSymbol));
+			commentExpander.setAttribute("class",   "comment-expander comment-expander-" + i);
+			commentExpander.setAttribute("onclick", "return !expandOrCollapse(" + i + ")");
+
+			// insert expander
+			commentHeader.insertBefore(commentExpander, commentHeader.firstChild);
+
+		}
+		
+	}
+
+	// create infrastructure to collapse/expand ALL comments
+	var collapseAndExpandLinks = document.createElement("span");
+	var collapseAllLink        = document.createElement("a");
+	var expandAllLink          = document.createElement("a");
+
+	// style and set attributes on these
+	collapseAndExpandLinks.style.fontFamily = "monospace";
+
+	collapseAllLink.href        = "#";
+	collapseAllLink.textContent = "Collapse all";
+	collapseAllLink.setAttribute("onclick", "expandOrCollapseAll(true); return false");
+
+	expandAllLink.href        = "#";
+	expandAllLink.textContent = "Expand all";
+	expandAllLink.setAttribute("onclick", 'expandOrCollapseAll(false); return false');
+
+	// assemble elements
+	collapseAndExpandLinks.appendChild(document.createTextNode(" ("));
+	collapseAndExpandLinks.appendChild(collapseAllLink);
+	collapseAndExpandLinks.appendChild(document.createTextNode(genericSeparator));
+	collapseAndExpandLinks.appendChild(expandAllLink);
+	collapseAndExpandLinks.appendChild(document.createTextNode(")"));
+
+	// if we didn't actually find the comments header earlier, we don't
+	// insert the link, but this shouldn't happen unless the page structure
+	// as returned by the server changes.
+	if(commentsHeader)
+		commentsHeader.appendChild(collapseAndExpandLinks);
+
+}
+
 // identify objects from Jason Summers' jslife20121230 object collection.
 function identifyJslifeObject(params) {
 	
@@ -910,6 +1149,9 @@ function identifyJslifeObject(params) {
 						return true;
 				});
 
+			// descriptions collected for this object from jslife
+			var jslifeDescs = new Array();
+
 			// each line contains the code and description for one object.
 			for(var i = 0; i < jslifeLines.length; i++) {
 				
@@ -921,19 +1163,51 @@ function identifyJslifeObject(params) {
 				var jslifeDesc    = jslifeLines[i].substr(spacePos + 1);
 
 				// is this our current object?
-				if(jslifeApgcode == apgcode) {
+				if(jslifeApgcode == apgcode)
+					jslifeDescs.push(jslifeDesc);
 
-					// find info paragraph.
-					var infoParagraph = document.getElementById("infoParagraph");
+			}
 
-					// add note that this object is in jslife.
-					infoParagraph.appendChild(document.createTextNode("This object appears in jslife-20121230: " + jslifeDesc));
-					infoParagraph.appendChild(document.createElement("br"));
+			// did we find anything at all?
+			if(jslifeDescs.length) {
+				
+				// find info paragraph.
+				var infoParagraph = document.getElementById("infoParagraph");
 
-					// make sure info paragraph is visible.
-					infoParagraph.style.display = "";
+				// if there is more than one description, we create a list;
+				// otherwise it's just a simple piece of text.
+				if(jslifeDescs.length > 1) {
+				
+					// create a list of descriptions.
+					var listOfDescriptions = infoParagraph.appendChild(document.createElement("ul"));
+
+					// add note that this object is in jslife, and add the list.
+					infoParagraph.appendChild(document.createTextNode("This object appears in jslife-20121230:"));
+					infoParagraph.appendChild(listOfDescriptions);
+
+					for(var i = 0; i < jslifeDescs.length; i++) {
+
+						// create a list item for this description
+						var listItem = document.createElement("li");
+
+						// fill in description
+						listItem.textContent = jslifeDescs[i];
+
+						// append list item to list
+						listOfDescriptions.appendChild(listItem);
+						
+					}
+				
+				} else {
+
+					// There's only one description to add.
+					infoParagraph.appendChild(document.createTextNode("This object appears in jslife-20121230: " + jslifeDescs[0]));
 
 				}
+
+				// make sure info paragraph is visible.
+				infoParagraph.style.display = "";
+			
 			}
 
 	    });
@@ -941,6 +1215,30 @@ function identifyJslifeObject(params) {
 	// fire off request.
 	jslifeRequest.open("GET", jslifeURL);
 	jslifeRequest.send();
+
+}
+
+function addApgcodeSubheading(params) {
+
+	var apgcode = params["apgcode"];
+	var name    = params["name"];
+
+	// find title heading.
+	var titleHeading = findTitleHeading();
+
+	// if this object has a name, its apgcode isn't shown by default, so we 
+	// add it as sub-heading.
+	if(name) {
+
+		var apgcodeSpan = document.createElement("span");
+
+		apgcodeSpan.textContent    = apgcode;
+		apgcodeSpan.style.fontSize = "small";
+
+		titleHeading.appendChild(document.createElement("br"));
+		titleHeading.appendChild(apgcodeSpan);
+
+	}
 
 }
 
