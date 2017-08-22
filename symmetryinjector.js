@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Catagolue Symmetry Injector
 // @namespace   None
-// @description Add symmetry to links to Catagolue object pages.
+// @description Add symmetry to links to Catagolue object pages to support breadcrumbs navigation.
 // @include     https://catagolue.appspot.com/census/*
 // @version     1.0
 // @grant       none
