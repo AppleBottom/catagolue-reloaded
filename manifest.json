@@ -1,29 +1,24 @@
 {
-  "content_scripts": [
-    {
-      "matches": [
-        "*://catagolue.appspot.com/*"
-      ], 
-      "include_globs": [
-        "*://catagolue.appspot.com/object/*"
-      ], 
-      "js": [
-        "samplesoupsorter.js"
-      ]
-    }
-  ], 
-  "name": "Catagolue Reloaded", 
-  "icons": {
-    "128": "catagolue2.0_128.png", 
-    "48": "catagolue2.0_48.png", 
-    "16": "catagolue2.0_16.png"
-  }, 
-  "description": "Useful enhancements for Adam P. Goucher's Catagolue.", 
-  "version": "1.0", 
-  "manifest_version": 2, 
-  "update_url": "https://extension-updates.opera.com/api/omaha/update/", 
-  "developer": {
-    "url": "https://twitter.com/_AppleBottom_", 
-    "name": "Apple Bottom"
-  }
+	"name": "Catagolue Reloaded",
+	"version": "1.1",
+	"manifest_version": 2,
+
+	"description": "Useful enhancements for Adam P. Goucher's Catagolue",
+	"developer": {
+		"name": "Apple Bottom",
+		"url": "https://twitter.com/_AppleBottom_"
+	},
+	"icons": {
+		"128": "catagolue2.0_128.png",
+		"48": "catagolue2.0_48.png",
+		"16": "catagolue2.0_16.png"
+	},
+
+	"content_scripts": [
+		{
+			"matches": ["*://catagolue.appspot.com/*"],
+			"include_globs": ["*://catagolue.appspot.com/object/*"],
+			"js": ["samplesoupsorter.js"]
+		}
+	]
 }
