@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        Catagolue Symmetry Injector
+// @name        Catagolue Census Page updates
 // @namespace   None
 // @description Add symmetry to links to Catagolue object pages to support breadcrumbs navigation.
 // @include     *://catagolue.appspot.com/census/*
@@ -18,7 +18,7 @@ function MAIN() {
 	if(params != null) {
 
 		// do our work.
-		adornLinks(params);
+		fixObjectLinks(params);
 
 	}
 }
@@ -61,7 +61,8 @@ function readParams() {
  * Major functionality *
  ***********************/
 
-function adornLinks(params) {
+// add symmetry to object links.
+function fixObjectLinks(params) {
 
 	var rule     = params["rule"];
 	var symmetry = params["symmetry"];
@@ -83,6 +84,7 @@ function adornLinks(params) {
 		if(matches) {
 
 			link.setAttribute("href", linkTarget + "/" + symmetry);
+			link.style.wordBreak = "break-all";
 		  
 		}
 	}
