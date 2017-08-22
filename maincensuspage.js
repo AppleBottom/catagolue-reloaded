@@ -80,8 +80,7 @@ function adjustElementWidth(element) {
 // convert unordered lists to ordered.
 function convertLists() {
 
-	// parse lists on this page
-	// , and convert HTMLCollection to an array so it 
+	// parse lists on this page, and convert HTMLCollection to an array so it 
 	// won't be "live" and change underneath us when we remove those links.
 	var lists = Array.prototype.slice.call(document.getElementsByTagName("ul"));
 	for(var i = 0; i < lists.length; i++) {

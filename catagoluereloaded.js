@@ -3,7 +3,7 @@
 // @namespace   None
 // @description Various useful tweaks to Catagolue object pages.
 // @include     *://catagolue.appspot.com/object/*
-// @version     4.0
+// @version     4.2
 // @grant       none
 // ==/UserScript==
 
@@ -30,17 +30,14 @@ searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
 
 // width and height of the universe used for RLE conversion. User-configurable
 // (options), with a default of 100x100.
-// * NOTE 1: 40x40 is the maximum object size apgsearch will recognize; larger
-// objects are classified as PATHOLOGICAL.
-// * NOTE 2: however, user-supplied apgcodes CAN encode objects exceeding this.
-// We therefore use 100x100 as a compromise. RLE for patterns exceeding this 
-// will be truncated, but in practice this should be fairly rare.
-// Example of a pattern that actually exceeds this:
-// xp7_0g8k4raabaar4k8gzangbac4a1a4cabgnazcc0v0esxse0v0ccz0q6he19202
-// 91eh6qz1pe1pld8q8dlp1ep1zcikbaey1eabkiczcq2t1d17f71d1t2qcz32ql5d0
-// j0j0d5lq23zy239g93zy2okukozy2gpppgzy212n21zwggwcp0pcwggzck5qab0c0
-// c0baq5kcz3lkb8b8efe8b8bkl3z3k2dlnwgwnld2k3z8p7o9ab151ba9o7p8z056o
-// 78p404p87o65z3jgf073x370fgj3z5u0t5j25852j5t0u5zw122d55d55d221
+// * NOTE 1: 40x40 is the maximum object size apgsearch up to version 3.x 
+// will recognize; larger objects are classified as PATHOLOGICAL. Version 4.x
+// recognizes larger objects and encodes them using greedy apgcodes, subject
+// to certain other, moderate constraints.
+// * NOTE 2: Catagolue itself has always handled greedy apgcodes encoding 
+// larger objects quite well. We therefore use 100x100 as a compromise. RLE 
+// for patterns exceeding this will be truncated, but in practice this should
+// be fairly rare. (Famous last words!)
 var universeSize = localStorage.universeSize || 100;
 
 // MAIN function.
@@ -626,9 +623,10 @@ function handleSampleSoups(params) {
 	// so we inject it now.
 	injectScript("sampleSoupOverlay.js");
 
-	// furthermore, we need to inject Paul Johnston's MD5 script, since
-	// Javascript lacks any built-in support for computing MD5 hashes.
+	// furthermore, we need to inject Paul Johnston's MD5 and SHA-256 script, 
+	// since Javascript lacks any built-in support for computing hashes.
 	injectScript("md5.js");
+	injectScript("sha256.js");
 
 	// finally, we need to insert Peter-Paul Koch's element dragging script,
 	// so that the soup overlay can be dragged around the page with the mouse.
