@@ -1,13 +1,16 @@
 // ==UserScript==
-// @name        Catagolue sample soup sorter
+// @name        Catagolue Reloaded
 // @namespace   None
-// @description Sorts sample soup links on Catagolue object pages by symmetry.
+// @description Various useful tweaks to Catagolue object pages.
 // @include     https://catagolue.appspot.com/object/*
-// @version     2.1
+// @version     2.2
 // @grant       none
 // ==/UserScript==
 
 // "On second thought, let's not hack in Javascript. 'tis a silly language."
+
+// separator used for breadcrumb navigation links
+var breadcrumbSeparator = " » "; // > ›
 
 // MAIN function.
 function MAIN() {
@@ -18,6 +21,7 @@ function MAIN() {
 	if(params != null) {
 
 		// do our work.
+		addNavLinks    (params);
 		sortSampleSoups(params);
 		objectToRLE    (params);
 
@@ -33,14 +37,27 @@ function MAIN() {
  * HTML-related helper functions *
  *********************************/
 
+// find the heading containing the object's code
+function findTitleHeading() {
+
+	// find the content div; the heading is (currently) its first child.
+	var content = document.getElementById("content");
+	if(content)
+		return content.firstElementChild;
+
+	// this shouldn't happen unless the page layout changes.
+	return null;
+
+}
+
 // find the H2 beginning the comments section.
 function findCommentsH2() {
 
 	var contentRegex = /Comments \(/;
 
-	// elements on Catagolue pages do not have ids etc., so instead we look 
-	// for the right h2 tag.
-	// Note that this may break if Catagolue's page layout changes.
+	// most elements on Catagolue pages do not have ids etc., so instead we 
+	// look for the right h2 tag.
+	// NOTE: this may break if Catagolue's page layout changes.
 	var h2s = document.getElementsByTagName("h2");
 	for(var i = 0; i < h2s.length; i++) {
 	  
@@ -57,9 +74,10 @@ function findCommentsH2() {
 // find the paragraph containing the sample soup links.
 function findSampleSoupsParagraph() {
 
-	// elements on Catagolue pages do not have ids etc., so instead we look 
-	// for the right h3 tag; the paragraph we want is the following element.
-	// Note that this may break if Catagolue's page layout changes.
+	// most elements on Catagolue pages do not have ids etc., so instead we
+	// look for the right h3 tag; the paragraph we want is the following 
+	// element.
+	// NOTE: this may break if Catagolue's page layout changes.
 	var h3s = document.getElementsByTagName("h3");
 	for(var i = 0; i < h3s.length; i++) {
 	  
@@ -133,6 +151,19 @@ function readParams() {
 
 	// location didn't match.
 	return null;
+
+}
+
+// create and return a hyperlink
+function makeLink(linkTarget, linkText) {
+
+	// create a new "a" element
+	var link = document.createElement("a");
+
+	link.setAttribute("href", linkTarget);
+	link.textContent = linkText;
+
+	return link;
 
 }
 
@@ -497,6 +528,7 @@ function sortSampleSoups(params) {
   
 }
 
+// add a textarea with the object in RLE format.
 function objectToRLE(params) {
 
 	var prefix = params["prefix"];
@@ -535,6 +567,40 @@ function objectToRLE(params) {
 	RLETextArea.textContent = RLE;
 
 	commentsH2.parentNode.insertBefore(RLETextArea, commentsH2);
+
+}
+
+// add navigation
+function addNavLinks(params) {
+
+	var rule     = params["rule"];
+	var prefix   = params["prefix"];
+
+	// unfortunately there is no way to tell which symmetry we came from, so
+	// we default to C1.
+	var symmetry = "C1";
+
+	// heading containing the object's code
+	var titleHeading = findTitleHeading();
+
+	// main content div
+	var contentDiv = titleHeading.parentNode;
+
+	// new paragraph for navigation links
+	var navigationParagraph = document.createElement("p");
+
+	// insert navigation paragraph before title heading
+	contentDiv.insertBefore(navigationParagraph, titleHeading);
+
+	// add breadcrumb links to navigation paragraph
+	navigationParagraph.appendChild(document.createTextNode("You are here: "));
+	navigationParagraph.appendChild(makeLink("/census/", "Census"));
+	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
+	navigationParagraph.appendChild(makeLink("/census/" + rule + "/", rule));
+	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
+	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/", symmetry));
+	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
+	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/" + prefix + "/", prefix));
 
 }
 
