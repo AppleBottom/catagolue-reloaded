@@ -3,7 +3,7 @@
 // @namespace   None
 // @description Various useful tweaks to Catagolue object pages.
 // @include     *://catagolue.appspot.com/object/*
-// @version     3.7
+// @version     3.8
 // @grant       none
 // ==/UserScript==
 
@@ -11,14 +11,29 @@
 
 // separators used for breadcrumb navigation links and search links
 var breadcrumbSeparator = " » "; // Alternatively: > or ›
-var searchSeparator     = " • ";
+var genericSeparator    = " • ";
 
 // list of search providers to link to on object pages.
 var searchProviders = new Object;
 
 searchProviders["LifeWiki"]          = "http://conwaylife.com/w/index.php?title=Special%3ASearch&profile=all&fulltext=Search&search=";
-searchProviders["ConwayLife forums"] = "http://www.conwaylife.com/forums/search.php?terms=all&author=&fid[]=3&fid[]=4&fid[]=5&fid[]=7&fid[]=11&fid[]=9&fid[]=2&fid[]=14&fid[]=12&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&t=0&submit=Search&keywords=";
+searchProviders["ConwayLife forums"] = "http://conwaylife.com/forums/search.php?terms=all&author=&fid[]=3&fid[]=4&fid[]=5&fid[]=7&fid[]=11&fid[]=9&fid[]=2&fid[]=14&fid[]=12&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&t=0&submit=Search&keywords=";
 searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
+
+// width and height of the universe used for RLE conversion. User-configurable
+// (options), with a default of 100x100.
+// * NOTE 1: 40x40 is the maximum object size apgsearch will recognize; larger
+// objects are classified as PATHOLOGICAL.
+// * NOTE 2: however, user-supplied apgcodes CAN encode objects exceeding this.
+// We therefore use 100x100 as a compromise. RLE for patterns exceeding this 
+// will be truncated, but in practice this should be fairly rare.
+// Example of a pattern that actually exceeds this:
+// xp7_0g8k4raabaar4k8gzangbac4a1a4cabgnazcc0v0esxse0v0ccz0q6he19202
+// 91eh6qz1pe1pld8q8dlp1ep1zcikbaey1eabkiczcq2t1d17f71d1t2qcz32ql5d0
+// j0j0d5lq23zy239g93zy2okukozy2gpppgzy212n21zwggwcp0pcwggzck5qab0c0
+// c0baq5kcz3lkb8b8efe8b8bkl3z3k2dlnwgwnld2k3z8p7o9ab151ba9o7p8z056o
+// 78p404p87o65z3jgf073x370fgj3z5u0t5j25852j5t0u5zw122d55d55d221
+var universeSize = 100;
 
 // MAIN function.
 function MAIN() {
@@ -29,9 +44,13 @@ function MAIN() {
 	if(params != null) {
 
 		// do our work.
-		addNavLinks    (params);
-		handleSampleSoups(params);
-		objectToRLE    (params);
+		addNavLinks         (params);
+		handleSampleSoups   (params);
+		objectToRLE         (params);
+		addImgLink          (params);
+
+		// FIXME: this must come after addNavLinks; it needs the searchParagraph that addNavLinks adds.
+//		identifyJslifeObject(params); // disabled until data files are completed.
 
 	} else {
 
@@ -110,7 +129,7 @@ function appendHR(node) {
 	hrCell.colSpan             = "3";
 	hrCell.style.paddingTop    = "0";
 	hrCell.style.paddingBottom = "0"
-    hr.    style.margin        = "0";
+	hr.    style.margin        = "0";
 
 
 	node.  appendChild(hrRow);
@@ -303,10 +322,11 @@ function apgcodeDecodeWXY(code) {
 // Convert an object (represented by its apgcode) to a pattern.
 function apgcodeToPattern(object, rule) {
 
-	// create a 40x40 array to hold the pattern. Note that 40x40 is the 
-	// maximum object size;  larger objects are classified as PATHOLOGICAL on
-	// Catagolue.
-	var pattern = emptyUniverse(40, 40);
+	// create an array to hold the pattern.
+	var pattern = emptyUniverse(universeSize, universeSize);
+
+	// is this an oversized pattern?
+	var oversized = false;
 
 	// decode w/x/y
 	object = apgcodeDecodeWXY(object);
@@ -350,8 +370,11 @@ function apgcodeToPattern(object, rule) {
 					if(y > by)
 						by = y;
 
-					// and set the cell for this bit.
-					pattern[x][y] = 1;
+					if((x >= universeSize) || (y >= universeSize))
+						oversized = true;
+					else
+						// set the cell for this bit.
+						pattern[x][y] = 1;
 				}
 			}
 		}
@@ -359,10 +382,11 @@ function apgcodeToPattern(object, rule) {
 
 	var ret = new Object();
 
-	ret["pattern"] = pattern;
-	ret["bx"     ] = bx;
-	ret["by"     ] = by;
-	ret["rule"   ] = rule;
+	ret["pattern"  ] = pattern;
+	ret["bx"       ] = bx;
+	ret["by"       ] = by;
+	ret["rule"     ] = rule;
+	ret["oversized"] = oversized;
 
 	return ret;
 }
@@ -392,14 +416,31 @@ function RLEAddRun(count, state) {
 function patternToRLE(patternObject) {
 
 	// extract values
-	var pattern = patternObject["pattern"];
-	var bx      = patternObject["bx"];
-	var by      = patternObject["by"];
-	var rule    = patternObject["rule"];
+	var pattern   = patternObject["pattern"];
+	var bx        = patternObject["bx"];
+	var by        = patternObject["by"];
+	var rule      = patternObject["rule"];
+	var oversized = patternObject["oversized"];
 
 	// RLE pattern
 	// the first line is a header.
 	var RLE = "x = " + (bx + 1) + ", y = " + (by + 1) + ", rule = " + ruleSlashedUpper(rule) + "\n";
+
+	// note truncated pattern, if necessary.
+	if(oversized)
+		RLE += "#C PATTERN EXCEEDS " + universeSize + "x" + universeSize + " BOUNDING BOX - TRUNCATED\n";
+
+	// if necessary, adjust bx and by for the purpose of encoding the pattern.
+	// This keeps us from accessing pattern cells that don't actually exist
+	// in the loop further down.
+	// NOTE: bx and by are the maximum array indices seen; since the 
+	// pattern[][] array is zero-indexed, these need to be set to one LESS
+	// than universeSize.
+	if(bx >= universeSize)
+		bx = universeSize - 1;
+
+	if(by >= universeSize)
+		by = universeSize - 1;
 
 	// state of the ongoing run
 	var currentState = "NONE";
@@ -463,713 +504,17 @@ function patternToRLE(patternObject) {
  * Major functionality *
  ***********************/
 
-/*** INJECTED MD5 SCRIPT ***/
-
-/***************************************************************************
- * NOTE: all code in this script was written by Paul Johnson and is taken  *
- * from http://pajhome.org.uk/crypt/md5/md5.html . The code is licensed    *
- * under the 3-clause BSD license, which is compatible with the GNU GPL.   *
- * See http://pajhome.org.uk/site/legal.html#bsdlicense , as well as the   *
- * FSF's https://www.gnu.org/licenses/license-list.html#ModifiedBSD .      *
- ***************************************************************************/
-
-var MD5Script = `
-
-// change this in case Catagolue moves.
-var catagolueHostName  = "catagolue.appspot.com";
-
-/*
- * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
- * Digest Algorithm, as defined in RFC 1321.
- * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
- * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
- * Distributed under the BSD License
- * See http://pajhome.org.uk/crypt/md5 for more info.
- */
-
-/*
- * Configurable variables. You may need to tweak these to be compatible with
- * the server-side, but the defaults work in most cases.
- */
-var hexcase = 0;   /* hex output format. 0 - lowercase; 1 - uppercase        */
-var b64pad  = "";  /* base-64 pad character. "=" for strict RFC compliance   */
-
-/*
- * These are the functions you'll usually want to call
- * They take string arguments and return either hex or base-64 encoded strings
- */
-function hex_md5(s)    { return rstr2hex(rstr_md5(str2rstr_utf8(s))); }
-function b64_md5(s)    { return rstr2b64(rstr_md5(str2rstr_utf8(s))); }
-function any_md5(s, e) { return rstr2any(rstr_md5(str2rstr_utf8(s)), e); }
-function hex_hmac_md5(k, d)
-  { return rstr2hex(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d))); }
-function b64_hmac_md5(k, d)
-  { return rstr2b64(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d))); }
-function any_hmac_md5(k, d, e)
-  { return rstr2any(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)), e); }
-
-/*
- * Perform a simple self-test to see if the VM is working
- */
-function md5_vm_test()
-{
-  return hex_md5("abc").toLowerCase() == "900150983cd24fb0d6963f7d28e17f72";
-}
-
-/*
- * Calculate the MD5 of a raw string
- */
-function rstr_md5(s)
-{
-  return binl2rstr(binl_md5(rstr2binl(s), s.length * 8));
-}
-
-/*
- * Calculate the HMAC-MD5, of a key and some data (raw strings)
- */
-function rstr_hmac_md5(key, data)
-{
-  var bkey = rstr2binl(key);
-  if(bkey.length > 16) bkey = binl_md5(bkey, key.length * 8);
-
-  var ipad = Array(16), opad = Array(16);
-  for(var i = 0; i < 16; i++)
-  {
-    ipad[i] = bkey[i] ^ 0x36363636;
-    opad[i] = bkey[i] ^ 0x5C5C5C5C;
-  }
-
-  var hash = binl_md5(ipad.concat(rstr2binl(data)), 512 + data.length * 8);
-  return binl2rstr(binl_md5(opad.concat(hash), 512 + 128));
-}
-
-/*
- * Convert a raw string to a hex string
- */
-function rstr2hex(input)
-{
-  try { hexcase } catch(e) { hexcase=0; }
-  var hex_tab = hexcase ? "0123456789ABCDEF" : "0123456789abcdef";
-  var output = "";
-  var x;
-  for(var i = 0; i < input.length; i++)
-  {
-    x = input.charCodeAt(i);
-    output += hex_tab.charAt((x >>> 4) & 0x0F)
-           +  hex_tab.charAt( x        & 0x0F);
-  }
-  return output;
-}
-
-/*
- * Convert a raw string to a base-64 string
- */
-function rstr2b64(input)
-{
-  try { b64pad } catch(e) { b64pad=''; }
-  var tab = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  var output = "";
-  var len = input.length;
-  for(var i = 0; i < len; i += 3)
-  {
-    var triplet = (input.charCodeAt(i) << 16)
-                | (i + 1 < len ? input.charCodeAt(i+1) << 8 : 0)
-                | (i + 2 < len ? input.charCodeAt(i+2)      : 0);
-    for(var j = 0; j < 4; j++)
-    {
-      if(i * 8 + j * 6 > input.length * 8) output += b64pad;
-      else output += tab.charAt((triplet >>> 6*(3-j)) & 0x3F);
-    }
-  }
-  return output;
-}
-
-/*
- * Convert a raw string to an arbitrary string encoding
- */
-function rstr2any(input, encoding)
-{
-  var divisor = encoding.length;
-  var i, j, q, x, quotient;
-
-  /* Convert to an array of 16-bit big-endian values, forming the dividend */
-  var dividend = Array(Math.ceil(input.length / 2));
-  for(i = 0; i < dividend.length; i++)
-  {
-    dividend[i] = (input.charCodeAt(i * 2) << 8) | input.charCodeAt(i * 2 + 1);
-  }
-
-  /*
-   * Repeatedly perform a long division. The binary array forms the dividend,
-   * the length of the encoding is the divisor. Once computed, the quotient
-   * forms the dividend for the next step. All remainders are stored for later
-   * use.
-   */
-  var full_length = Math.ceil(input.length * 8 /
-                                    (Math.log(encoding.length) / Math.log(2)));
-  var remainders = Array(full_length);
-  for(j = 0; j < full_length; j++)
-  {
-    quotient = Array();
-    x = 0;
-    for(i = 0; i < dividend.length; i++)
-    {
-      x = (x << 16) + dividend[i];
-      q = Math.floor(x / divisor);
-      x -= q * divisor;
-      if(quotient.length > 0 || q > 0)
-        quotient[quotient.length] = q;
-    }
-    remainders[j] = x;
-    dividend = quotient;
-  }
-
-  /* Convert the remainders to the output string */
-  var output = "";
-  for(i = remainders.length - 1; i >= 0; i--)
-    output += encoding.charAt(remainders[i]);
-
-  return output;
-}
-
-/*
- * Encode a string as utf-8.
- * For efficiency, this assumes the input is valid utf-16.
- */
-function str2rstr_utf8(input)
-{
-  var output = "";
-  var i = -1;
-  var x, y;
-
-  while(++i < input.length)
-  {
-    /* Decode utf-16 surrogate pairs */
-    x = input.charCodeAt(i);
-    y = i + 1 < input.length ? input.charCodeAt(i + 1) : 0;
-    if(0xD800 <= x && x <= 0xDBFF && 0xDC00 <= y && y <= 0xDFFF)
-    {
-      x = 0x10000 + ((x & 0x03FF) << 10) + (y & 0x03FF);
-      i++;
-    }
-
-    /* Encode output as utf-8 */
-    if(x <= 0x7F)
-      output += String.fromCharCode(x);
-    else if(x <= 0x7FF)
-      output += String.fromCharCode(0xC0 | ((x >>> 6 ) & 0x1F),
-                                    0x80 | ( x         & 0x3F));
-    else if(x <= 0xFFFF)
-      output += String.fromCharCode(0xE0 | ((x >>> 12) & 0x0F),
-                                    0x80 | ((x >>> 6 ) & 0x3F),
-                                    0x80 | ( x         & 0x3F));
-    else if(x <= 0x1FFFFF)
-      output += String.fromCharCode(0xF0 | ((x >>> 18) & 0x07),
-                                    0x80 | ((x >>> 12) & 0x3F),
-                                    0x80 | ((x >>> 6 ) & 0x3F),
-                                    0x80 | ( x         & 0x3F));
-  }
-  return output;
-}
-
-/*
- * Encode a string as utf-16
- */
-function str2rstr_utf16le(input)
-{
-  var output = "";
-  for(var i = 0; i < input.length; i++)
-    output += String.fromCharCode( input.charCodeAt(i)        & 0xFF,
-                                  (input.charCodeAt(i) >>> 8) & 0xFF);
-  return output;
-}
-
-function str2rstr_utf16be(input)
-{
-  var output = "";
-  for(var i = 0; i < input.length; i++)
-    output += String.fromCharCode((input.charCodeAt(i) >>> 8) & 0xFF,
-                                   input.charCodeAt(i)        & 0xFF);
-  return output;
-}
-
-/*
- * Convert a raw string to an array of little-endian words
- * Characters >255 have their high-byte silently ignored.
- */
-function rstr2binl(input)
-{
-  var output = Array(input.length >> 2);
-  for(var i = 0; i < output.length; i++)
-    output[i] = 0;
-  for(var i = 0; i < input.length * 8; i += 8)
-    output[i>>5] |= (input.charCodeAt(i / 8) & 0xFF) << (i%32);
-  return output;
-}
-
-/*
- * Convert an array of little-endian words to a string
- */
-function binl2rstr(input)
-{
-  var output = "";
-  for(var i = 0; i < input.length * 32; i += 8)
-    output += String.fromCharCode((input[i>>5] >>> (i % 32)) & 0xFF);
-  return output;
-}
-
-/*
- * Calculate the MD5 of an array of little-endian words, and a bit length.
- */
-function binl_md5(x, len)
-{
-  /* append padding */
-  x[len >> 5] |= 0x80 << ((len) % 32);
-  x[(((len + 64) >>> 9) << 4) + 14] = len;
-
-  var a =  1732584193;
-  var b = -271733879;
-  var c = -1732584194;
-  var d =  271733878;
-
-  for(var i = 0; i < x.length; i += 16)
-  {
-    var olda = a;
-    var oldb = b;
-    var oldc = c;
-    var oldd = d;
-
-    a = md5_ff(a, b, c, d, x[i+ 0], 7 , -680876936);
-    d = md5_ff(d, a, b, c, x[i+ 1], 12, -389564586);
-    c = md5_ff(c, d, a, b, x[i+ 2], 17,  606105819);
-    b = md5_ff(b, c, d, a, x[i+ 3], 22, -1044525330);
-    a = md5_ff(a, b, c, d, x[i+ 4], 7 , -176418897);
-    d = md5_ff(d, a, b, c, x[i+ 5], 12,  1200080426);
-    c = md5_ff(c, d, a, b, x[i+ 6], 17, -1473231341);
-    b = md5_ff(b, c, d, a, x[i+ 7], 22, -45705983);
-    a = md5_ff(a, b, c, d, x[i+ 8], 7 ,  1770035416);
-    d = md5_ff(d, a, b, c, x[i+ 9], 12, -1958414417);
-    c = md5_ff(c, d, a, b, x[i+10], 17, -42063);
-    b = md5_ff(b, c, d, a, x[i+11], 22, -1990404162);
-    a = md5_ff(a, b, c, d, x[i+12], 7 ,  1804603682);
-    d = md5_ff(d, a, b, c, x[i+13], 12, -40341101);
-    c = md5_ff(c, d, a, b, x[i+14], 17, -1502002290);
-    b = md5_ff(b, c, d, a, x[i+15], 22,  1236535329);
-
-    a = md5_gg(a, b, c, d, x[i+ 1], 5 , -165796510);
-    d = md5_gg(d, a, b, c, x[i+ 6], 9 , -1069501632);
-    c = md5_gg(c, d, a, b, x[i+11], 14,  643717713);
-    b = md5_gg(b, c, d, a, x[i+ 0], 20, -373897302);
-    a = md5_gg(a, b, c, d, x[i+ 5], 5 , -701558691);
-    d = md5_gg(d, a, b, c, x[i+10], 9 ,  38016083);
-    c = md5_gg(c, d, a, b, x[i+15], 14, -660478335);
-    b = md5_gg(b, c, d, a, x[i+ 4], 20, -405537848);
-    a = md5_gg(a, b, c, d, x[i+ 9], 5 ,  568446438);
-    d = md5_gg(d, a, b, c, x[i+14], 9 , -1019803690);
-    c = md5_gg(c, d, a, b, x[i+ 3], 14, -187363961);
-    b = md5_gg(b, c, d, a, x[i+ 8], 20,  1163531501);
-    a = md5_gg(a, b, c, d, x[i+13], 5 , -1444681467);
-    d = md5_gg(d, a, b, c, x[i+ 2], 9 , -51403784);
-    c = md5_gg(c, d, a, b, x[i+ 7], 14,  1735328473);
-    b = md5_gg(b, c, d, a, x[i+12], 20, -1926607734);
-
-    a = md5_hh(a, b, c, d, x[i+ 5], 4 , -378558);
-    d = md5_hh(d, a, b, c, x[i+ 8], 11, -2022574463);
-    c = md5_hh(c, d, a, b, x[i+11], 16,  1839030562);
-    b = md5_hh(b, c, d, a, x[i+14], 23, -35309556);
-    a = md5_hh(a, b, c, d, x[i+ 1], 4 , -1530992060);
-    d = md5_hh(d, a, b, c, x[i+ 4], 11,  1272893353);
-    c = md5_hh(c, d, a, b, x[i+ 7], 16, -155497632);
-    b = md5_hh(b, c, d, a, x[i+10], 23, -1094730640);
-    a = md5_hh(a, b, c, d, x[i+13], 4 ,  681279174);
-    d = md5_hh(d, a, b, c, x[i+ 0], 11, -358537222);
-    c = md5_hh(c, d, a, b, x[i+ 3], 16, -722521979);
-    b = md5_hh(b, c, d, a, x[i+ 6], 23,  76029189);
-    a = md5_hh(a, b, c, d, x[i+ 9], 4 , -640364487);
-    d = md5_hh(d, a, b, c, x[i+12], 11, -421815835);
-    c = md5_hh(c, d, a, b, x[i+15], 16,  530742520);
-    b = md5_hh(b, c, d, a, x[i+ 2], 23, -995338651);
-
-    a = md5_ii(a, b, c, d, x[i+ 0], 6 , -198630844);
-    d = md5_ii(d, a, b, c, x[i+ 7], 10,  1126891415);
-    c = md5_ii(c, d, a, b, x[i+14], 15, -1416354905);
-    b = md5_ii(b, c, d, a, x[i+ 5], 21, -57434055);
-    a = md5_ii(a, b, c, d, x[i+12], 6 ,  1700485571);
-    d = md5_ii(d, a, b, c, x[i+ 3], 10, -1894986606);
-    c = md5_ii(c, d, a, b, x[i+10], 15, -1051523);
-    b = md5_ii(b, c, d, a, x[i+ 1], 21, -2054922799);
-    a = md5_ii(a, b, c, d, x[i+ 8], 6 ,  1873313359);
-    d = md5_ii(d, a, b, c, x[i+15], 10, -30611744);
-    c = md5_ii(c, d, a, b, x[i+ 6], 15, -1560198380);
-    b = md5_ii(b, c, d, a, x[i+13], 21,  1309151649);
-    a = md5_ii(a, b, c, d, x[i+ 4], 6 , -145523070);
-    d = md5_ii(d, a, b, c, x[i+11], 10, -1120210379);
-    c = md5_ii(c, d, a, b, x[i+ 2], 15,  718787259);
-    b = md5_ii(b, c, d, a, x[i+ 9], 21, -343485551);
-
-    a = safe_add(a, olda);
-    b = safe_add(b, oldb);
-    c = safe_add(c, oldc);
-    d = safe_add(d, oldd);
-  }
-  return Array(a, b, c, d);
-}
-
-/*
- * These functions implement the four basic operations the algorithm uses.
- */
-function md5_cmn(q, a, b, x, s, t)
-{
-  return safe_add(bit_rol(safe_add(safe_add(a, q), safe_add(x, t)), s),b);
-}
-function md5_ff(a, b, c, d, x, s, t)
-{
-  return md5_cmn((b & c) | ((~b) & d), a, b, x, s, t);
-}
-function md5_gg(a, b, c, d, x, s, t)
-{
-  return md5_cmn((b & d) | (c & (~d)), a, b, x, s, t);
-}
-function md5_hh(a, b, c, d, x, s, t)
-{
-  return md5_cmn(b ^ c ^ d, a, b, x, s, t);
-}
-function md5_ii(a, b, c, d, x, s, t)
-{
-  return md5_cmn(c ^ (b | (~d)), a, b, x, s, t);
-}
-
-/*
- * Add integers, wrapping at 2^32. This uses 16-bit operations internally
- * to work around bugs in some JS interpreters.
- */
-function safe_add(x, y)
-{
-  var lsw = (x & 0xFFFF) + (y & 0xFFFF);
-  var msw = (x >> 16) + (y >> 16) + (lsw >> 16);
-  return (msw << 16) | (lsw & 0xFFFF);
-}
-
-/*
- * Bitwise rotate a 32-bit number to the left.
- */
-function bit_rol(num, cnt)
-{
-  return (num << cnt) | (num >>> (32 - cnt));
-}
-
-`
-
-/*** End of Paul Johnson's MD5 code ***/
-
-/*** ELEMENT DRAG AND DROP SUPPORT SCRIPT ***/
-
-/*****************************************************************************
- * NOTE: script taken from http://www.quirksmode.org/js/dragdrop.html , with *
- * the following changes:                                                    *
- *     a) removed keyboard dragging.                                         *
- *     b) added ability to ignore mouse clicks in a specified child.         *
- * Event handlers taken from http://www.quirksmode.org/js/eventSimple.html . *
- * Both written by ppk Peter-Paul Koch; no license given, but implied to be  *
- * permissive.                                                               *
- *****************************************************************************/
-
-var dragAndDropSupportScript = `
-
-function addEventSimple(obj,evt,fn) {
-	if (obj.addEventListener)
-		obj.addEventListener(evt,fn,false);
-	else if (obj.attachEvent)
-		obj.attachEvent('on'+evt,fn);
-}
-
-function removeEventSimple(obj,evt,fn) {
-	if (obj.removeEventListener)
-		obj.removeEventListener(evt,fn,false);
-	else if (obj.detachEvent)
-		obj.detachEvent('on'+evt,fn);
-}
-
-dragDrop = {
-	initialMouseX: undefined,
-	initialMouseY: undefined,
-	startX: undefined,
-	startY: undefined,
-	draggedObject: undefined,
-	excludedObject: undefined,
-	initElement: function (element, excl) {
-		if (typeof element == 'string')
-			element = document.getElementById(element);
-		if (typeof excl == 'string')
-			excl = document.getElementById(excl);
-		element.onmousedown = dragDrop.startDragMouse;
-		excludedObject = excl;
-	},
-	startDragMouse: function (e) {
-		if(e.target == excludedObject)
-			return true;
-		dragDrop.startDrag(this);
-		var evt = e || window.event;
-		dragDrop.initialMouseX = evt.clientX;
-		dragDrop.initialMouseY = evt.clientY;
-		addEventSimple(document,'mousemove',dragDrop.dragMouse);
-		addEventSimple(document,'mouseup',dragDrop.releaseElement);
-		return false;
-	},
-	startDrag: function (obj) {
-		if (dragDrop.draggedObject)
-			dragDrop.releaseElement();
-		dragDrop.startX = obj.offsetLeft;
-		dragDrop.startY = obj.offsetTop;
-		dragDrop.draggedObject = obj;
-		obj.className += ' dragged';
-	},
-	dragMouse: function (e) {
-		var evt = e || window.event;
-		var dX = evt.clientX - dragDrop.initialMouseX;
-		var dY = evt.clientY - dragDrop.initialMouseY;
-		dragDrop.setPosition(dX,dY);
-		return false;
-	},
-	setPosition: function (dx,dy) {
-		dragDrop.draggedObject.style.left = dragDrop.startX + dx + 'px';
-		dragDrop.draggedObject.style.top = dragDrop.startY + dy + 'px';
-	},
-	releaseElement: function() {
-		removeEventSimple(document,'mousemove',dragDrop.dragMouse);
-		removeEventSimple(document,'mouseup',dragDrop.releaseElement);
-		dragDrop.draggedObject.className = dragDrop.draggedObject.className.replace(/dragged/,'');
-		dragDrop.draggedObject = null;
-	}
-}
-
-`
-
-/*** INJECTED SAMPLE SOUP OVERLAY SCRIPT ***/
-
-var sampleSoupOverlayScript = `
-
-// Event handler to close sample soup overlay. Based on (with modifications)
-// https://stackoverflow.com/posts/3369743/revisions .
-function closeSoupOverlay(evt) {
-
-    evt          = evt || window.event;
-    var isEscape = false;
-    var isClick  = false;
-
-    if("key" in evt)
-        isEscape = (evt.key == "Escape");
-    else
-        isEscape = (evt.keyCode == 27);
-
-    if("type" in evt)
-        isClick = (evt.type == "mousedown");
-
-    if(isEscape || isClick) {
-        var overlayDiv = document.getElementById("sampleSoupOverlay");
-        if(overlayDiv)
-            overlayDiv.parentNode.removeChild(overlayDiv);
-    }
-
-}
-
-function overlaySoup(soupURL, soupNumber, totalSoups) {
-
-	// regex to extract soup seed etc. from soupURL
-	// FIXME: using \d instead of [0-9] does not work. Why?
-	var soupURLRegex = new RegExp("^(https?://)" + catagolueHostName + "/hashsoup/(.*?)/((m_|n_)?[A-Za-z0-9]{12})([0-9]*)/(.*)$");
-
-	// match regex against soup URL. This also verifies that we're not getting
-	// passed just any URL to load remotely.
-	var matches = soupURLRegex.exec(soupURL);
-
-	if(!matches) {
-		// URL could not be parsed
-		console.log("Could not parse soup URL: " + soupURL);
-		return false;
-	}
-
-	// collect soup parameters.
-	// NOTE: seedPrefix would indicate if the haul was submitted using 
-	// apgsearch 0.x/1.x (empty string), apgnano 2.x ("n_") or apgmera 3.x
-	// ("m_"), but we have no use for this at the moment.
-	var URLScheme        = matches[1]
-	var symmetry         = matches[2];
-	var seed             = matches[3];
-	// var seedPrefix       = matches[4];
-	var soupNumberInHaul = matches[5];
-	var rule             = matches[6];
-
-	// URL for the haul containing this soup.
-	var haulURL = URLScheme + catagolueHostName + "/haul/" + rule + "/" + symmetry + "/" + hex_md5(seed);
-
-    var color = symmetryColors[symmetry] || "black";
-
-	// Sample soup overlay, based on (with modifications) Method 5 on
-	// http://www.vikaskbh.com/five-css-techniques-make-overlay-div-centered/
-
-	// create the elements we'll need.
-	var overlayDiv         = document.createElement("div");
-    var overlayInnerDiv    = document.createElement("div");
-    var overlayShadingDiv  = document.createElement("div");
-    var introParagraph     = document.createElement("p");
-	var haulLink           = document.createElement("a");
-	var soupSelectAll      = document.createElement("p");
-	var soupSelectAllLink  = document.createElement("a");
-	var sampleSoupTextarea = document.createElement("textarea");
-
-	// style outer div.
-    overlayDiv.id             = "sampleSoupOverlay";
-    overlayDiv.style.position = "fixed";
-    overlayDiv.style.top      = "0";
-    overlayDiv.style.left     = "0";
-    overlayDiv.style.width    = "100%";
-    overlayDiv.style.zIndex   = "1";
-    overlayDiv.style.height   = "100%";
-
-	// style inner div.
-	// NOTE: margin-left must be half of width for the div to be centered.
-	// NOTE 2: border color matches the color of the sample soup dots for
-	// this symmetry.
-	// NOTE 3: #003040 is a shade of deep cerulean, taken from Catagolue's
-	// background image.
-    overlayInnerDiv.style.position        = "relative";
-    overlayInnerDiv.style.left            = "50%";
-    overlayInnerDiv.style.marginLeft      = "-375px";
-    overlayInnerDiv.style.border          = "5px outset " + color;
-    overlayInnerDiv.style.borderRadius    = "10px";
-    overlayInnerDiv.style.backgroundColor = "white";
-    overlayInnerDiv.style.color           = "black";
-    overlayInnerDiv.style.width           = "750px";
-    overlayInnerDiv.style.zIndex          = "3";
-    overlayInnerDiv.style.top             = "20%";
-    overlayInnerDiv.style.minHeight       = "50%";
-	overlayInnerDiv.style.maxHeight       = "90%";
-    overlayInnerDiv.style.padding         = "1em";
-    overlayInnerDiv.style.boxShadow       = "10px -10px 10px 0px #003040";
-
-	// style the div that will shade the remainder of the page behind the
-	// sample soup while the overlay is open.
-    overlayShadingDiv.style.position        = "fixed";
-    overlayShadingDiv.style.width           = "100%";
-    overlayShadingDiv.style.height          = "100%";
-    overlayShadingDiv.style.margin          = "auto";
-    overlayShadingDiv.style.backgroundColor = "black";
-    overlayShadingDiv.style.opacity         = "0.5";
-    overlayShadingDiv.style.zIndex          = "2";
-    overlayShadingDiv.style.top             = "0";
-    overlayShadingDiv.style.left            = "0";
-
-	// clicking outside the overlay will close it.
-    overlayShadingDiv.onmousedown           = closeSoupOverlay;
-
-	// link to the haul containing this soup
-	haulLink.href        = haulURL;
-	haulLink.textContent = "Haul";
- 
-	// a short introductory note informing the user which soup this is.
-	// NOTE: U+2116 is the "Numero" symbol.
-    introParagraph.style.marginTop = "0";
-    introParagraph.appendChild(document.createTextNode(symmetry + " soup \u2116 " + soupNumber.toString() + " / " + totalSoups.toString() + " ("));
-	introParagraph.appendChild(haulLink);
-	introParagraph.appendChild(document.createTextNode(")"));
-
-	// create "select all" link for the sample soup
-	soupSelectAll.style.marginTop    = 0;
-	soupSelectAll.style.marginBottom = "0.5em";
-	soupSelectAll.style.fontFamily   = "monospace";
-
-	soupSelectAllLink.href        = "#";
-	soupSelectAllLink.textContent = "Select All";
-	soupSelectAllLink.setAttribute("onclick", 'document.getElementById("sampleSoupTextArea").select(); return false');
-
-	soupSelectAll.appendChild(soupSelectAllLink);
-
-	// the textarea that will hold the soup.
-	sampleSoupTextarea.id              = "sampleSoupTextArea";
-	sampleSoupTextarea.style.width     = "100%";
-	sampleSoupTextarea.style.overflowY = "scroll";
-	sampleSoupTextarea.rows            = "34";
-	sampleSoupTextarea.style.maxHeight = (window.innerHeight * 0.65) + "px";
-	sampleSoupTextarea.readOnly        = true;
-	sampleSoupTextarea.textContent     = "Loading " + soupURL + ", please wait...";
-
-	// assemble elements.
-    document.getElementById("sampleSoupTable").appendChild(overlayDiv);
-    overlayDiv.appendChild(overlayInnerDiv);
-    overlayDiv.appendChild(overlayShadingDiv);
-    overlayInnerDiv.appendChild(introParagraph);
-    overlayInnerDiv.appendChild(soupSelectAll);
-    overlayInnerDiv.appendChild(sampleSoupTextarea);
-
-	// make sample soup overlay draggable with the mouse; text area is
-	// excluded (so the user can select the sample soup with the mouse).
-	dragDrop.initElement("sampleSoupOverlay", "sampleSoupTextArea");
-
-	// asynchronous request to retrieve the soup.
-    var sampleSoupRequest = new XMLHttpRequest();
-
-	// once the soup is loaded, put it into the textarea.
-    sampleSoupRequest.addEventListener("load", function() {
-            var sampleSoupTextarea = document.getElementById("sampleSoupTextArea");
-            if(sampleSoupTextarea)
-                sampleSoupTextarea.textContent = sampleSoupRequest.responseText;
-        });
-
-	// fire off request.
-    sampleSoupRequest.open("GET", soupURL);
-    sampleSoupRequest.send();
-
-	// success!
-	return true;
-
-}
-
-// colors used for the various symmetries. Color values are probably
-// autogenerated from the symmetries' names, but I don't know how, so here's
-// a hardcoded list.
-var symmetryColors = new Object();
-
-// standard symmetries. 
-symmetryColors["25pct"] = "#72da55";
-symmetryColors["75pct"] = "#10963a";
-symmetryColors["8x32" ] = "#6d0ecf";
-symmetryColors["C1"   ] = "black";
-symmetryColors["C2_1" ] = "#f83e05";
-symmetryColors["C2_2" ] = "#31a6d8";
-symmetryColors["C2_4" ] = "#aceb02";
-symmetryColors["C4_1" ] = "#d085ff";
-symmetryColors["C4_4" ] = "#cd14a0";
-symmetryColors["D2_+1"] = "#39bab9";
-symmetryColors["D2_+2"] = "#747d16";
-symmetryColors["D2_x" ] = "#fb71fe";
-symmetryColors["D4_+1"] = "#f6b2b6";
-symmetryColors["D4_+2"] = "#f8e612";
-symmetryColors["D4_+4"] = "#cfc20e";
-symmetryColors["D4_x1"] = "#ae360f";
-symmetryColors["D4_x4"] = "#3e5b59";
-symmetryColors["D8_1" ] = "#ed65b6";
-symmetryColors["D8_4" ] = "#a621fb";
-
-// "weird" symmetries
-symmetryColors["D4 +4"] = "#d32f3f";
-symmetryColors["D8_+4"] = "#0bb2a2";
-
-// register an event handler so the soup overlay can be closed by pressing escape.
-document.onkeydown = closeSoupOverlay;
-`;
-
-/*** INJECTED SCRIPT ENDS ***/
-
 // inject a new script into the current page.
+// NOTE: only scripts listed in web_accessible_resources in the manifest file
+// can be injected this way.
 function injectScript(injectedScript) {
 
 	// create a new script element
 	var script = document.createElement("script");
-	script.type = "text/javascript";
 
-	// inject script text
-	script.textContent = injectedScript;
+	// script type and source URL
+	script.type = "text/javascript";
+	script.src  = chrome.extension.getURL("scripts/" + injectedScript);
 
 	// append script to document
 	document.getElementsByTagName("head")[0].appendChild(script);
@@ -1199,15 +544,15 @@ function handleSampleSoups(params) {
 	// to do this, we set an onclick handler on the links below that calls a
 	// function doing this. This function must live in the document, however,
 	// so we inject it now.
-	injectScript(sampleSoupOverlayScript);
+	injectScript("sampleSoupOverlay.js");
 
 	// furthermore, we need to inject Paul Johnston's MD5 script, since
 	// Javascript lacks any built-in support for computing MD5 hashes.
-	injectScript(MD5Script);
+	injectScript("md5.js");
 
 	// finally, we need to insert Peter-Paul Koch's element dragging script,
 	// so that the soup overlay can be dragged around the page with the mouse.
-	injectScript(dragAndDropSupportScript);
+	injectScript("dragondrop.js");
 
 	for(var i = 0; i < links.length; i++) {
 	  
@@ -1383,7 +728,65 @@ function objectToRLE(params) {
 
 }
 
-// add navigation and search links
+// add a link to the SVG image of an object.
+function addImgLink(params) {
+
+	var apgcode = params["apgcode"];
+	var rule    = params["rule"  ];
+
+	// construct link to SVG image for this object
+	var imgLink = "https://catagolue.appspot.com/pic/" + apgcode + "/" + rule + "/pic.svg";
+
+	// find the "Comments" H2
+	var commentsH2 = findCommentsH2();
+
+	// create a new heading for the image link.
+	var imgLinkHeading = document.createElement("h3");
+	imgLinkHeading.textContent = "SVG link";
+
+	// create "select all" link for image link.
+	var imgLinkSelectAll     = document.createElement("p");
+	var imgLinkSelectAllLink = document.createElement("a");
+
+	imgLinkSelectAll.style.marginTop    = 0;
+	imgLinkSelectAll.style.marginBottom = "0.5em";
+	imgLinkSelectAll.style.fontFamily   = "monospace";
+
+	imgLinkSelectAllLink.href        = "#";
+	imgLinkSelectAllLink.textContent = "Select All";
+	imgLinkSelectAllLink.setAttribute("onclick", 'document.getElementById("imgLinkTextArea").select(); return false');
+
+	imgLinkSelectAll.appendChild(imgLinkSelectAllLink);
+
+	// create link to open image
+	imgLinkOpenImageLink = document.createElement("a");
+
+	imgLinkOpenImageLink.href        = imgLink;
+	imgLinkOpenImageLink.target      = "_blank";
+	imgLinkOpenImageLink.textContent = "View";
+
+	imgLinkSelectAll.appendChild(document.createTextNode(genericSeparator));
+	imgLinkSelectAll.appendChild(imgLinkOpenImageLink);
+
+	// create a textarea for the image link.
+	var imgLinkTextArea = document.createElement("textarea");
+
+	// set textarea attributes.
+	imgLinkTextArea.id          = "imgLinkTextArea";
+	imgLinkTextArea.style.width = "100%";
+	imgLinkTextArea.rows        = "1";
+	imgLinkTextArea.readOnly    = true;
+	imgLinkTextArea.textContent = imgLink;
+
+	// insert the new nodes.
+	commentsH2.parentNode.insertBefore(imgLinkHeading,   commentsH2);
+	commentsH2.parentNode.insertBefore(imgLinkSelectAll, commentsH2);
+	commentsH2.parentNode.insertBefore(imgLinkTextArea,  commentsH2);
+
+}
+
+// add navigation, search links etc.
+// FIXME: rename this, or break it up. Or both.
 function addNavLinks(params) {
 
 	var rule     = params["rule"];
@@ -1399,9 +802,26 @@ function addNavLinks(params) {
 	var titleHeading = findTitleHeading();
 	var contentDiv   = titleHeading.parentNode;
 
+	// also modify title heading to wrap particularly long codes such as
+	// xp84_ybiu0okk6k46o8bp4ozyb47o3egf86lklabqjsjqa4ogkczyc11x113wmlggxgglm
+	// zw3iajaqjk46y76s1u2o14441o2u1s6y864kjqajai3zwiv0er8q6he8y08oggy01cjkma
+	// 6amkjc1y1ggo8y08eh6q8re0viz0c4gf8ck3sj426gu1622q5kq2sgw12721xgs2qk5q22
+	// 61ug624js3kc8fg4czy019ld2odw58v2xv08q2qfx4224xfq2q80vx2v85wdo2dl91zy51
+	// 23ap69q32qa51221wgoo8y21221lq22rk1uh23032zy0g8g2ug624js1622q5kq2sgy6gs
+	// 2qk5q2262sj426is0g8gzg08kkld2odw58v2xv08q2qfx1221xfq2q80vx2v85wdo2dlkk
+	// 80gz19o7gphu1ehi3034jqaa512210g88ci7ic88g12215aaqj4303ihe1uhpg7o91z02f
+	// gbmoab43y9o4p6p32323p6p4oy834baombgf2z06226226113y8314ba8c111c8ab413y7
+	// 3116226226zyjg88r5go8o8oglb886kk8g0s4zyj11w12261u2uilp53878bu0v9zyt146
+	// w311311w32
+	titleHeading.style.overflowWrap = "break-word"; // or .style.wordBreak = "break-all"; ?
+
 	// create new paragraphs for navigation and search links.
 	var navigationParagraph = document.createElement("p");
 	var searchParagraph     = document.createElement("p");
+
+	// add IDs so we can find these later.
+	navigationParagraph.id = "navigationParagraph";
+	searchParagraph.id     = "searchParagraph";
 
 	// insert navlink paragraph before title heading
 	contentDiv.insertBefore(navigationParagraph, titleHeading);
@@ -1424,11 +844,103 @@ function addNavLinks(params) {
 	searchParagraph.appendChild(document.createTextNode("Search by apgcode: "));
 	for (var searchProvider in searchProviders) {
 		searchParagraph.appendChild(makeLink(searchProviders[searchProvider] + apgcode, searchProvider));
-		searchParagraph.appendChild(document.createTextNode(searchSeparator));
+		searchParagraph.appendChild(document.createTextNode(genericSeparator));
 	}
 
 	// we added an extra separator after the last search link; remove that.
 	searchParagraph.removeChild(searchParagraph.lastChild);
+
+}
+
+// identify objects from Jason Summers' jslife20121230 object collection.
+function identifyJslifeObject(params) {
+	
+	var prefix  = params["prefix"];
+	var apgcode = params["apgcode"];
+
+	// create info paragraph
+	var infoParagraph   = document.createElement("p");
+
+	// find search paragraph
+	var searchParagraph = document.getElementById("searchParagraph");
+
+	// insert info paragraph after search links
+	insertAfter(infoParagraph, searchParagraph);
+
+	// hide info paragraph by default, and assign it an id so it can be found
+	infoParagraph.style.display = "none";
+	infoParagraph.id            = "infoParagraph";
+
+	// FIXME: is there a better way to read an extension-local data file than
+	// using XMLHttpRequest? Xan's answer to a Stackoverflow question at 
+	// https://stackoverflow.com/a/28858129 does not work; Opera 39 complains
+	// saying "Uncaught TypeError: chrome.runtime.getPackageDirectoryEntry is
+	// not a function", even though 
+	// https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/runtime/getPackageDirectoryEntry
+	// indicates it should work.
+
+	// convert extension-local path to URL. Each prefix has its own data file.
+	// NOTE: the file must be listed in web_accessible_resources in 
+	// manifest.json to be accessible this way.
+	jslifeURL = chrome.extension.getURL("data/" + prefix + ".txt");
+
+	// asynchronous request to retrieve the soup. If the file does not exist,
+	// the request will fail silently and harmlessly.
+	var jslifeRequest = new XMLHttpRequest();
+
+	// once the soup is loaded, put it into the textarea.
+	jslifeRequest.addEventListener("load", function() {
+
+			// separate response text into lines and filter out empty lines
+			// etc.
+			var jslifeLines = jslifeRequest.responseText
+				.replace(/(\r\n)|\r|\n/g, '\n')
+				.split(/\n+/g)
+				.filter(function(element, index, array) {
+
+					if(!element || element.charAt(0) == "#")
+						// filter out empty lines and comments
+						return false;
+
+					else if(element.substring(0, 3) == "n/a")
+						// filter out unencodable objects
+						return false
+
+					else
+						return true;
+				});
+
+			// each line contains the code and description for one object.
+			for(var i = 0; i < jslifeLines.length; i++) {
+				
+				// split line into apgcode and description. Note that it is
+				// not possible to use the split method, as this does not stop
+				// splitting but instead simply discards further elements.
+				var spacePos      = jslifeLines[i].indexOf(" ");
+				var jslifeApgcode = jslifeLines[i].substr(0, spacePos);
+				var jslifeDesc    = jslifeLines[i].substr(spacePos + 1);
+
+				// is this our current object?
+				if(jslifeApgcode == apgcode) {
+
+					// find info paragraph.
+					var infoParagraph = document.getElementById("infoParagraph");
+
+					// add note that this object is in jslife.
+					infoParagraph.appendChild(document.createTextNode("This object appears in jslife-20121230: " + jslifeDesc));
+					infoParagraph.appendChild(document.createElement("br"));
+
+					// make sure info paragraph is visible.
+					infoParagraph.style.display = "";
+
+				}
+			}
+
+	    });
+
+	// fire off request.
+	jslifeRequest.open("GET", jslifeURL);
+	jslifeRequest.send();
 
 }
 
