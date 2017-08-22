@@ -12,10 +12,6 @@
 // separator used for breadcrumb navigation links
 var breadcrumbSeparator = " » "; // > ›
 
-// change these in case Catagolue moves.
-var catagolueURLScheme = "https://";
-var catagolueHostName  = "catagolue.appspot.com";
-
 // MAIN function.
 function MAIN() {
 
@@ -450,6 +446,10 @@ function patternToRLE(patternObject) {
  ***************************************************************************/
 
 var MD5Script = `
+
+// change these in case Catagolue moves.
+var catagolueURLScheme = "https://";
+var catagolueHostName  = "catagolue.appspot.com";
 
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
