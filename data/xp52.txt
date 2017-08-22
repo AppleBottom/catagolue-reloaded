@@ -1,0 +1,9 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp52_4s0gy3ca23zw11w4ed3zy08oy362sgzw311 jslife-20121230, o0052.lif, row 1, object 1
+xp52_4s0gy3ca23zw11w4ed3zy08oy362sgzw311 jslife-20121230, x-djb-oscillators.lif, group 15, object 1
+xp52_4s0gy3ca23zw11w4ed3zy08oy362sgzw311 jslife-20121230, x-oscs-1-of-each.lif, period 52
+xp52_y2giligz8k80u1460g9gw8k8y3g88ci6zy011w1221y327757fggldzwggy5632y7123zw1cbaqsxoggy3ggzwojd553x1x4a4w3421o81v04a4zyh3iai21zyj1 jslife-20121230, o0052.lif, row 1, object 2
+xp52_y2giligz8k80u1460g9gw8k8y3g88ci6zy011w1221y327757fggldzwggy5632y7123zw1cbaqsxoggy3ggzwojd553x1x4a4w3421o81v04a4zyh3iai21zyj1 jslife-20121230, x-oscs-new-p036-060.lif, period 52, object 1
+xp52_yb6952cgzy4oox8cec901z69lqox66y2oozx11x66066x66wosq596zy1a1ia4ozy411 jslife-20121230, o0052.lif, row 2, object 1
+xp52_yxgiligzywg9g0641u08k8zydg8keey488ox122hw11zy98k4o1221y611wggg121zy87721y069a4y6mxmzycc4sy8ok78d1d87kozykg88ci6zg8g0s4w4aicwg8gx72078glldz01w349b88cy01y7123zy3252 jslife-20121230, o0052.lif, row 2, object 2
+xp52_yxgiligzywg9g0641u08k8zydg8keey488ox122hw11zy98k4o1221y611wggg121zy87721y069a4y6mxmzycc4sy8ok78d1d87kozykg88ci6zg8g0s4w4aicwg8gx72078glldz01w349b88cy01y7123zy3252 jslife-20121230, x-oscs-new-p036-060.lif, period 52, object 2

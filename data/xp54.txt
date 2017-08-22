@@ -1,0 +1,6 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp54_178cy6gy6c871y0178cy6gy6c871zy433xn31y688k8888k88y613nx33z0g8oy033x372y5o8gy2g8oy5273x33y0o8gz23yl32y023yl32 jslife-20121230, o0054.lif, row 3, object 1
+xp54_32acy5ca23zy1ogxgozy0fb86068bfzzycca23zc453zzy3fth606htfzy41y11zxc453y5354c jslife-20121230, o0054.lif, row 2, object 1
+xp54_32acy5ca23zy1ooxoozx4ossxsso4zzzc453y5354c jslife-20121230, o0054.lif, row 1, object 1
+xp54_32acy5ca23zy1ooxoozx4ossxsso4zzzc453y5354c jslife-20121230, x-djb-oscillators.lif, group 5, object 7
+xp54_32acy5ca23zy1ooxoozx4ossxsso4zzzc453y5354c jslife-20121230, x-oscs-1-of-each.lif, period 54

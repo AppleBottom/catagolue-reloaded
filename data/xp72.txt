@@ -1,0 +1,8 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp72_66625dw66y66664abw66zy3ccy8cczyd6995 jslife-20121230, o0072.lif, row 1, object 1
+xp72_gfnz1op1xcczzy6o44oz0nfgx660101z1po1y14aa4zy4cic jslife-20121230, o0072.lif, row 1, object 2
+xp72_gk2gb3y8ggggy1oomewccz11yc168972y0cczoo0gyaomhpe4xgjjz0240dcyh1167w33 jslife-20121230, o0072.lif, row 2, object 2
+xp72_gk2gb3y8ggggy1oomewccz11yc168972y0cczoo0gyaomhpe4xgjjz0240dcyh1167w33 jslife-20121230, x-oscs-new-p061+.lif, period 72, object 2
+xp72_xdby5bdz651326u21312u623156zx65157cec75156z0g8sgy0gkgy28kkoy3gggz1134alico8y4s011gg8y0333ssszy231yeezyh6a8qe373eq8a6zye6a8c46748c84764c8a6zyhbdy5db jslife-20121230, o0072.lif, row 3, object 1
+xp72_xdby5bdz651326u21312u623156zx65157cec75156z0g8sgy0gkgy28kkoy3gggz1134alico8y4s011gg8y0333ssszy231yeezyh6a8qe373eq8a6zye6a8c46748c84764c8a6zyhbdy5db jslife-20121230, x-oscs-new-p061+.lif, period 72, object 1
+xp72_xgk2gb3zx11z6a8850cs1v0cczw6519e121 jslife-20121230, o0072.lif, row 2, object 1

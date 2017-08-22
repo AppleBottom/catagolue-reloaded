@@ -1,0 +1,36 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp11_08kiab9ic0s408ozx34aq1qa9eh62iacggz3146pab8b41v4paabgf0s408ozy33ph5qa24ba2i69eh62iacggzy7346pab8b51v0n2qbgf0v0rbzyd3ph5qa34bq2qa9eg7czyg47069ar8blk7gv1d96zyp123qa953 jslife-20121230, o0011.lif, row 4, object 1
+xp11_08o0kq2raikmzca3s168fs5o0fgkczx1qajkngmb074zy41 jslife-20121230, o0011.lif, row 2, object 3
+xp11_08o64kjap6o8gzamhcbxg8p0v066zx355kk5521zy211 jslife-20121230, o0011.lif, row 5, object 3
+xp11_0g842130v1oozra888ab43zx33 jslife-20121230, o0011.lif, row 1, object 1
+xp11_0g842130v1oozra888ab43zx33 jslife-20121230, x-djb-oscillators.lif, group 13, object 5
+xp11_0g842130v1oozra888ab43zx33 jslife-20121230, x-oscs-1-of-each.lif, period 11
+xp11_0ggdbwgg8gzgh2uh7p6ikn826z10122qj43 jslife-20121230, o0011.lif, row 3, object 2
+xp11_0ggdbwgg8gzgh2uh7p6ikn826z10piaq543 jslife-20121230, o0011.lif, row 3, object 1
+xp11_0ggdbwgg8gzmk1uh7p6ikn826z034aaq543 jslife-20121230, o0011.lif, row 4, object 3
+xp11_0ggdbwgg8gzmk1uh7p6ikn826z034iqab41 jslife-20121230, o0011.lif, row 3, object 3
+xp11_0okiab88gzcimgl1ph5q2raiczx6s1eie989q4ozy11230ehaqa952 jslife-20121230, o0011.lif, row 1, object 6
+xp11_178cx9fgkczckgggmilb8ozx66w1 jslife-20121230, o0011.lif, row 2, object 6
+xp11_8kiab2akl3zw34a9l4ihe8gzx651226221 jslife-20121230, o0011.lif, row 1, object 3
+xp11_ckgf9zx3llkklho1u0oozwo49m4iq221zx11 jslife-20121230, o0011.lif, row 6, object 2
+xp11_g08u1j8bbgz11xlk2s3qkzo80g0q243s4zw178c1dd jslife-20121230, o0011.lif, row 5, object 6
+xp11_g88c9jzdd0ehhla8c970bdzy2123 jslife-20121230, o0011.lif, row 5, object 2
+xp11_g88e1e8xo8gz0113122xs2v066zx32qjc321e91 jslife-20121230, o0011.lif, row 2, object 7
+xp11_ggwc9b8oz4v0mhjz1789a6164kozw3123 jslife-20121230, o0011.lif, row 2, object 4
+xp11_gie0o4a2rai3s4z034jqaao3u1s1t246zy6121 jslife-20121230, o0011.lif, row 5, object 5
+xp11_wc48c930gg8gzog8o0uh7p6ikn826zwgbail0n0v4zx122c55d jslife-20121230, o0011.lif, row 4, object 5
+xp11_wkcy1jjgzg8l5s26llg7o64k8z12lkbaaa61sj21zw1023 jslife-20121230, o0011.lif, row 1, object 5
+xp11_wmqwggm55q4oz320hs3ia4ljlia952zx122qj43w1 jslife-20121230, o0011.lif, row 4, object 4
+xp11_xg88b94og4cz4aq55ghrge1cb2acz02fgv0saqaacwgzy1470v1v1p55kkozy5118f0t2kaiabgzya1230321 jslife-20121230, o0011.lif, row 6, object 1
+xp11_xg88b94ozo80h4p8b4l5p6ki6zwdbw11d961101 jslife-20121230, o0011.lif, row 4, object 2
+xp11_xg8k8x33x8k8gzw121ow111111wo121z33xfy6fx33zw25ak8022222208ka52zy633 jslife-20121230, o0011.lif, row 1, object 2
+xp11_xiu0o4aab88czo4k5s25lkc1d996z0dl4baaa6113zx113 jslife-20121230, o0011.lif, row 1, object 4
+xp11_xo44owgiligzwh98f1c3aq2k0no3tgz320fhqb87kja95kq221zy565 jslife-20121230, o0011.lif, row 4, object 6
+xp11_xo4s0c453z31eh4t1ckoxgs26zy0116aimgbaa6zy623 jslife-20121230, o0011.lif, row 2, object 5
+xp11_y2gba9j0gwgzkc0s221x1mhd59cz11w5t2q86zy011023 jslife-20121230, o0011.lif, row 5, object 4
+xp11_y3316zy17s8apgwiu39hwgkczg88w8g0ocw8pggoz11x44632x42017zy9346 jslife-20121230, o0011.lif, row 5, object 1
+xp11_y3316zy17s8apgwiu39hwgkczg88w8g0ocw8pggoz11x44632x42017zy9346 jslife-20121230, x-oscs-new-p001-019.lif, period 11, object 2
+xp11_y4ogg0178bp6o8gzoggy323y2125aacggz6a8nkgy133566y2178arzx122dis0oggw6a8ozy5346074 jslife-20121230, x-djb-oscillators.lif, group 22, object 4
+xp11_y4ra9j0j9arz8o0o8ggw3pb0bp3wgg8o0o8zra0hara0rhy1hr0arah0arz2303211wojq0qjow1123032zy4raip0piar jslife-20121230, o0011.lif, row 2, object 2
+xp11_y4ra9j0j9arz8o0o8ggw3pb0bp3wgg8o0o8zra0hara0rhy1hr0arah0arz2303211wojq0qjow1123032zy4raip0piar jslife-20121230, x-oscs-new-p001-019.lif, period 11, object 1
+xp11_y5o8bp6o8gzx8oy5125aacggzc88g123xemoy1178arz354ra8gy011x31e8zy01169egc88czy5123 jslife-20121230, o0011.lif, row 2, object 1

@@ -1,0 +1,27 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp15_03pmwmp3zxg11z332blic jslife-20121230, o0015.lif, row 2, object 1
+xp15_0g84o798gz6bo3o1tllaaczw123cja43 jslife-20121230, o0015.lif, row 3, object 2
+xp15_0g886p688gz34bo3o1tllaaczx123cja43 jslife-20121230, o0015.lif, row 3, object 3
+xp15_0g8kiar1mk4oz2js1u0fkhcv0v1e8zy1122c5521 jslife-20121230, o0015.lif, row 3, object 4
+xp15_0gg06iiy175777757z03w3zskszvnv jslife-20121230, o0015.lif, row 1, object 3
+xp15_0gg06iiy175777757z03w3zskszvnv jslife-20121230, x-oscs-new-p001-019.lif, period 15, object 4
+xp15_14441xvtvz41114x757 jslife-20121230, o0015.lif, row 1, object 2
+xp15_14441xvtvz41114x757 jslife-20121230, x-oscs-new-p001-019.lif, period 15, object 1
+xp15_1784koy7ok4871z0o4p78uy5u87p4ozpp0v0cg150gog051gc0v0ppzy0hhy7hhzjj0v061gk01310kg160v0jjz034js2fy5f2sj43zgs2453y73542sg jslife-20121230, o0015.lif, row 3, object 1
+xp15_1784koy7ok4871z0o4p78uy5u87p4ozpp0v0cg150gog051gc0v0ppzy0hhy7hhzjj0v061gk01310kg160v0jjz034js2fy5f2sj43zgs2453y73542sg jslife-20121230, x-oscs-new-p001-019.lif, period 15, object 3
+xp15_3lkmg02520gmkl3z056w34e43w65zy288skkxgs2mkk8zy8unmg9hzya641 jslife-20121230, o0015.lif, row 4, object 4
+xp15_3v3y64r4z9g9y0jjy04r4zcfcy011 jslife-20121230, o0015.lif, row 2, object 3
+xp15_4r4y0ccy04r4z4r4y066y04r4 jslife-20121230, o0015.lif, row 2, object 2
+xp15_4r4z4r4 jslife-20121230, o0015.lif, row 1, object 1
+xp15_4r4z4r4 jslife-20121230, x-oscs-1-of-each.lif, period 15
+xp15_8kkm1vgkczwgh26wg8ehraa4z6221xcb98gczy532 jslife-20121230, o0015.lif, row 3, object 6
+xp15_ci5q84s0s2sgxcq2cz9p6gf9g9p6mvz34a51230fgf0ciab9ipi9baa4zyaiv078b43156 jslife-20121230, o0015.lif, row 4, object 2
+xp15_gwo4k6kljgz11daaa830iu146zy032qj426 jslife-20121230, o0015.lif, row 3, object 5
+xp15_o8oy275777757zvfvy0ccwccy0gggz111y066w66y0vuvzxskssssksy2323 jslife-20121230, o0015.lif, row 2, object 4
+xp15_vtvy0g8gz757y11252zy3skssssks jslife-20121230, o0015.lif, row 2, object 5
+xp15_xoggc88b9acggozwg08u14n1n41u80gzw11w2cm0mc2w11zy166gv0vg66z4s0gy16y1g8e1raic88gzwhh0442cicy0fo80q0q8jao74z4701y1cy3178a707a871zy1cc1v0v1cczwggw86d0d68wggzw102fg4tgt4gf201zx311622qia6113 jslife-20121230, o0015.lif, row 4, object 1
+xp15_xoggc88b9acggozwg08u14n1n41u80gzw11w2cm0mc2w11zy166gv0vg66z4s0gy16y1g8e1raic88gzwhh0442cicy0fo80q0q8jao74z4701y1cy3178a707a871zy1cc1v0v1cczwggw86d0d68wggzw102fg4tgt4gf201zx311622qia6113 jslife-20121230, x-oscs-new-p001-019.lif, period 15, object 2
+xp15_y0o8go4q2s0v9zy04aaqi9j9iqa96zggydggz1ii1vux6e6xuv1ii1z32011woccccox11023zy2643w346 jslife-20121230, o0015.lif, row 4, object 5
+xp15_y0o8go4q2s0v9zy04aaqi9j9iqa96zggydggz1ii1vux6e6xuv1ii1z32011woccccox11023zy2643w346 jslife-20121230, x-oscs-new-p001-019.lif, period 15, object 5
+xp15_y54s0ad1ekhf8brz0oeox4elhwlhhawhv40ez010h8ss4s0v0amge5hu2qrz6t1t6w2521zw1 jslife-20121230, o0015.lif, row 4, object 3
+xp15_y8vtvzy8757zskssssksx80202ozy710221o0227w722227w722zyb9p9zyb8f8zyb2e2 jslife-20121230, o0015.lif, row 2, object 6

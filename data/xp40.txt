@@ -1,0 +1,12 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp40_33zxs48g69gvzx3021zy833 jslife-20121230, o0040.lif, row 1, object 1
+xp40_33zxs48g69gvzx3021zy833 jslife-20121230, x-oscs-1-of-each.lif, period 40
+xp40_33zxs48g69gvzx3021zy833 jslife-20121230, x-oscs-new-p036-060.lif, period 40, object 2
+xp40_gfnz1op1x8iioa6zy32993ac jslife-20121230, o0040.lif, row 2, object 1
+xp40_s22i8gy439e0e93y4g8i22szw129887yf788921zy1ggy2sksxsksy2ggz0oq1851y48o0o8y41581qozya3210123 jslife-20121230, o0040.lif, row 2, object 2
+xp40_y0g8ekogwg0gyd6664abw660ggz4cmpa521wgg3021y62507y834atsy2ogzx1y23blicy8e0a4y68k0swggo4al9632zyb66wd52666y14aqvdoy81271zydoooy1g04440g0110gggy166wd526660ggzyaeee111wgg03088803x78887ya34atszyi3blicyaehhhexs01110sy1ooo777zyn6664abw66ya222y3111 jslife-20121230, o0040.lif, row 3, object 2
+xp40_y0okct04zw10l11xoogzy0eaex15a960ggzyc9pozya37aczy1eaexeaey5ggz06asoye9poz3jiye37acz011y5eaexeaezy46asozy33jizy4110ciakgxeaezy9133xggl0gzyc40n653 jslife-20121230, o0040.lif, row 2, object 3
+xp40_y0okct04zw10l11xoogzy0eaex15a960ggzyc9pozya37aczy1eaexeaez06asoz3jiz0110ciakgxeaezy2133xggl0gzy540n653 jslife-20121230, x-oscs-new-p036-060.lif, period 40, object 1
+xp40_y335s2mgm2s53w6is0si6w35s2mgm2s53zy6dxdyddxdzy7h91oy0848x848y0o19hzy5go54y211hg0gh11y245ogz0c4gf1os05b6y46430346y46b50so1fg4czmp2dl3yv3ld2pmzx11yx11 jslife-20121230, o0040.lif, row 3, object 1
+xp40_y53pmwmp3zy24a4wg11x4a4z0oowcepgk0d2y6oozcgc4yec3d8z077yg66 jslife-20121230, o0040.lif, row 1, object 2
+xp40_y9bjy933z08o8y2118c83y1eehhh4xos4osuehuez348022yk11211z033yx33 jslife-20121230, o0040.lif, row 3, object 3

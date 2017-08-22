@@ -1,0 +1,6 @@
+# NOTE: this is an auto-generated file. Manual edits will be overwritten.
+xp33_0ggq52z044sy4ai2cz0u03y4s4sy84q4z0p99y4110g8oy499pz252y83i3y4s07zya3445y4jiizyk4a5 jslife-20121230, o0033.lif, row 1, object 1
+xp33_0ggq52z044sy4ai2cz0u03y4s4sy84q4z0p99y4110g8oy499pz252y83i3y4s07zya3445y4jiizyk4a5 jslife-20121230, x-oscs-1-of-each.lif, period 33
+xp33_0ggq52z044sy4ai2cz0u03y4s4sy84q4z0p99y4110g8oy499pz252y83i3y4s07zya3445y4jiizyk4a5 jslife-20121230, x-oscs-new-p020-035.lif, period 33, object 1
+xp33_gwc88c93zdlhb91t1032zca60oc6c8a6zy1g8hx66xg8gzx2521x7w7x1252z066w999y4999w66zx4ak8gwewewg8ka4zy21y066y01 jslife-20121230, o0033.lif, row 2, object 1
+xp33_wggy0gbb88gzc45c2sg01hn6pa2acxo8gzca949q01mkla43122xs2v066zw178e1ddy032qjc321e91 jslife-20121230, o0033.lif, row 3, object 1
