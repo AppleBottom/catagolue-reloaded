@@ -18,6 +18,9 @@ var genericSeparator    = " • ";
 var commentCollapsedSymbol = "▶ " // U+25B6 BLACK RIGHT-POINTING TRIANGLE
 var commentExpandedSymbol  = "▼ " // U+25BC BLACK DOWN-POINTING TRIANGLE
 
+// number of sample soups to group in a chunk.
+var sampleSoupChunkSize = 5;
+
 // list of search providers to link to on object pages.
 var searchProviders = new Object;
 
@@ -721,9 +724,20 @@ function handleSampleSoups(params) {
 			// false FROM the function does not work.
 			link.setAttribute("onclick", 'return !overlaySoup("' + link.href + '", ' + (j + 1).toString() + ', ' + numSoups.toString() + ')');
 
+			// also set a title on this link.
+			link.setAttribute("title", symmetry + ": soup " + (j + 1).toString() + " of " + numSoups.toString());
+
 			// put link in this table cell.
 			tableCell3.appendChild(link);
-			tableCell3.appendChild(document.createTextNode(" "));
+			tableCell3.appendChild(document.createTextNode("\u00a0")); // U+00A0 NO-BREAK SPACE (=&nbsp;)
+
+			// in order to group sample soup links into chunks, we insert some
+			// extra space after each chunk. Note that U+2003 EM SPACE is non-
+			// breaking, so the regular space following it is necessary to get
+			// proper line-wrapping.
+			if(!((j + 1) % sampleSoupChunkSize)) {
+				tableCell3.appendChild(document.createTextNode("\u2003 ")); // U+2003 EM SPACE (=&emsp;)
+			}
 
 		}
 		tableRow.appendChild(tableCell3);
