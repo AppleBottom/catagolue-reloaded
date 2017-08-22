@@ -2,8 +2,8 @@
 // @name        Catagolue Reloaded
 // @namespace   None
 // @description Various useful tweaks to Catagolue object pages.
-// @include     https://catagolue.appspot.com/object/*
-// @version     3.4
+// @include     *://catagolue.appspot.com/object/*
+// @version     3.5
 // @grant       none
 // ==/UserScript==
 
@@ -447,8 +447,7 @@ function patternToRLE(patternObject) {
 
 var MD5Script = `
 
-// change these in case Catagolue moves.
-var catagolueURLScheme = "https://";
+// change this in case Catagolue moves.
 var catagolueHostName  = "catagolue.appspot.com";
 
 /*
@@ -950,7 +949,7 @@ function overlaySoup(soupURL, soupNumber, totalSoups) {
 
 	// regex to extract soup seed etc. from soupURL
 	// FIXME: using \d instead of [0-9] does not work. Why?
-	var soupURLRegex = new RegExp("^" + catagolueURLScheme + catagolueHostName + "/hashsoup/(.*?)/((m_|n_)?[A-Za-z0-9]{12})([0-9]*)/(.*)$");
+	var soupURLRegex = new RegExp("^(https?://)" + catagolueHostName + "/hashsoup/(.*?)/((m_|n_)?[A-Za-z0-9]{12})([0-9]*)/(.*)$");
 
 	// match regex against soup URL. This also verifies that we're not getting
 	// passed just any URL to load remotely.
@@ -966,14 +965,15 @@ function overlaySoup(soupURL, soupNumber, totalSoups) {
 	// NOTE: seedPrefix would indicate if the haul was submitted using 
 	// apgsearch 0.x/1.x (empty string), apgnano 2.x ("n_") or apgmera 3.x
 	// ("m_"), but we have no use for this at the moment.
-	var symmetry         = matches[1];
-	var seed             = matches[2];
-	// var seedPrefix       = matches[3];
-	var soupNumberInHaul = matches[4];
-	var rule             = matches[5];
+	var URLScheme        = matches[1]
+	var symmetry         = matches[2];
+	var seed             = matches[3];
+	// var seedPrefix       = matches[4];
+	var soupNumberInHaul = matches[5];
+	var rule             = matches[6];
 
 	// URL for the haul containing this soup.
-	var haulURL = catagolueURLScheme + catagolueHostName + "/haul/" + rule + "/" + symmetry + "/" + hex_md5(seed);
+	var haulURL = URLScheme + catagolueHostName + "/haul/" + rule + "/" + symmetry + "/" + hex_md5(seed);
 
     var color = symmetryColors[symmetry] || "black";
 
@@ -1015,7 +1015,8 @@ function overlaySoup(soupURL, soupNumber, totalSoups) {
     overlayInnerDiv.style.width           = "750px";
     overlayInnerDiv.style.zIndex          = "3";
     overlayInnerDiv.style.top             = "20%";
-    overlayInnerDiv.style.minimumHeight   = "50%";
+    overlayInnerDiv.style.minHeight       = "50%";
+	overlayInnerDiv.style.maxHeight       = "90%";
     overlayInnerDiv.style.padding         = "1em";
     overlayInnerDiv.style.boxShadow       = "10px -10px 10px 0px #003040";
 
@@ -1057,11 +1058,13 @@ function overlaySoup(soupURL, soupNumber, totalSoups) {
 	soupSelectAll.appendChild(soupSelectAllLink);
 
 	// the textarea that will hold the soup.
-    sampleSoupTextarea.id          = "sampleSoupTextArea";
-    sampleSoupTextarea.style.width = "100%";
-    sampleSoupTextarea.rows        = "34";
-    sampleSoupTextarea.readOnly    = true;
-    sampleSoupTextarea.textContent = "Loading " + soupURL + ", please wait...";
+	sampleSoupTextarea.id              = "sampleSoupTextArea";
+	sampleSoupTextarea.style.width     = "100%";
+	sampleSoupTextarea.style.overflowY = "scroll";
+	sampleSoupTextarea.rows            = "34";
+	sampleSoupTextarea.style.maxHeight = (window.innerHeight * 0.65) + "px";
+	sampleSoupTextarea.readOnly        = true;
+	sampleSoupTextarea.textContent     = "Loading " + soupURL + ", please wait...";
 
 	// assemble elements.
     document.getElementById("sampleSoupTable").appendChild(overlayDiv);
