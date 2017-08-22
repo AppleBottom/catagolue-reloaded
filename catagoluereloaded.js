@@ -3,14 +3,22 @@
 // @namespace   None
 // @description Various useful tweaks to Catagolue object pages.
 // @include     *://catagolue.appspot.com/object/*
-// @version     3.5
+// @version     3.7
 // @grant       none
 // ==/UserScript==
 
 // "On second thought, let's not hack in Javascript. 'tis a silly language."
 
-// separator used for breadcrumb navigation links
-var breadcrumbSeparator = " » "; // > ›
+// separators used for breadcrumb navigation links and search links
+var breadcrumbSeparator = " » "; // Alternatively: > or ›
+var searchSeparator     = " • ";
+
+// list of search providers to link to on object pages.
+var searchProviders = new Object;
+
+searchProviders["LifeWiki"]          = "http://conwaylife.com/w/index.php?title=Special%3ASearch&profile=all&fulltext=Search&search=";
+searchProviders["ConwayLife forums"] = "http://www.conwaylife.com/forums/search.php?terms=all&author=&fid[]=3&fid[]=4&fid[]=5&fid[]=7&fid[]=11&fid[]=9&fid[]=2&fid[]=14&fid[]=12&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&t=0&submit=Search&keywords=";
+searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
 
 // MAIN function.
 function MAIN() {
@@ -185,6 +193,26 @@ function makeLink(linkTarget, linkText) {
 	link.textContent = linkText;
 
 	return link;
+
+}
+
+// insert a new node after a given reference node.
+// FIXME: this should probably check the reference node does, in fact, have a
+// parent.
+function insertAfter(newNode, refNode) {
+
+	// find reference node's next sibling
+	var nextNode = refNode.nextSibling;
+
+	if(nextNode)
+		// if the reference node isn't the last child, insert the new node
+		// before the next sibling node.
+		refNode.parentNode.insertBefore(newNode, nextNode);
+
+	else
+		// if the reference node is the last child, append the new node to the
+		// parent node.
+		refNode.parentNode.append(newNode);
 
 }
 
@@ -1133,7 +1161,7 @@ document.onkeydown = closeSoupOverlay;
 
 /*** INJECTED SCRIPT ENDS ***/
 
-// inject a function to display sample soups in an overlay.
+// inject a new script into the current page.
 function injectScript(injectedScript) {
 
 	// create a new script element
@@ -1355,28 +1383,32 @@ function objectToRLE(params) {
 
 }
 
-// add navigation
+// add navigation and search links
 function addNavLinks(params) {
 
 	var rule     = params["rule"];
 	var prefix   = params["prefix"];
 	var symmetry = params["symmetry"];
+	var apgcode  = params["apgcode"];
 
 	// if symmetry is not set, default to C1.
 	if(!symmetry)
 		symmetry = "C1";
 
-	// heading containing the object's code
+	// find heading containing the object's code and main content div.
 	var titleHeading = findTitleHeading();
+	var contentDiv   = titleHeading.parentNode;
 
-	// main content div
-	var contentDiv = titleHeading.parentNode;
-
-	// new paragraph for navigation links
+	// create new paragraphs for navigation and search links.
 	var navigationParagraph = document.createElement("p");
+	var searchParagraph     = document.createElement("p");
 
-	// insert navigation paragraph before title heading
+	// insert navlink paragraph before title heading
 	contentDiv.insertBefore(navigationParagraph, titleHeading);
+	
+	// insert search paragraph after title heading. (Why is there no 
+	// Node.insertAfter in Javascript?)
+	insertAfter(searchParagraph, titleHeading);
 
 	// add breadcrumb links to navigation paragraph
 	navigationParagraph.appendChild(document.createTextNode("You are here: "));
@@ -1387,6 +1419,16 @@ function addNavLinks(params) {
 	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry, symmetry));
 	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
 	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/" + prefix, prefix));
+
+	// add search links to search paragraph
+	searchParagraph.appendChild(document.createTextNode("Search by apgcode: "));
+	for (var searchProvider in searchProviders) {
+		searchParagraph.appendChild(makeLink(searchProviders[searchProvider] + apgcode, searchProvider));
+		searchParagraph.appendChild(document.createTextNode(searchSeparator));
+	}
+
+	// we added an extra separator after the last search link; remove that.
+	searchParagraph.removeChild(searchParagraph.lastChild);
 
 }
 
