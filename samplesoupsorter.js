@@ -3,12 +3,59 @@
 // @namespace   None
 // @description Sorts sample soup links on Catagolue object pages by symmetry.
 // @include     https://catagolue.appspot.com/object/*
-// @version     1.2
+// @version     2.0
 // @grant       none
 // ==/UserScript==
 
+// "On second thought, let's not hack in Javascript. 'tis a silly language."
+
+// MAIN function.
+function MAIN() {
+
+	// read page parameters
+	var params = readParams();
+
+	if(params != null) {
+
+		// do our work.
+		sortSampleSoups(params);
+		objectToRLE    (params);
+
+	} else {
+
+		// this shouldn't happen on pages where this script actually runs.
+		console.log("Could not read page parameters.");
+
+	}
+}
+
+/*********************************
+ * HTML-related helper functions *
+ *********************************/
+
+// find the H2 beginning the comments section.
+function findCommentsH2() {
+
+	var contentRegex = /Comments \(/;
+
+	// elements on Catagolue pages do not have ids etc., so instead we look 
+	// for the right h2 tag.
+	// Note that this may break if Catagolue's page layout changes.
+	var h2s = document.getElementsByTagName("h2");
+	for(var i = 0; i < h2s.length; i++) {
+	  
+		if(contentRegex.test(h2s[i].textContent)) {
+			return h2s[i];
+		}
+	}
+
+	// not found?
+	return null;
+
+}
+
 // find the paragraph containing the sample soup links.
-function findSampleSoupParagraph() {
+function findSampleSoupsParagraph() {
 
 	// elements on Catagolue pages do not have ids etc., so instead we look 
 	// for the right h3 tag; the paragraph we want is the following element.
@@ -23,6 +70,7 @@ function findSampleSoupParagraph() {
 
 	// not found?
 	return null;
+
 }
 
 // append a table row containing a hr element to a node (a table, in practice).
@@ -43,8 +91,276 @@ function appendHR(node) {
 
 }
 
+// read and return apgcode, rulestring etc.
+function readParams() {
+
+	// regular expression to extract apgcode and rulestring from the page URL
+	var locRegex = /object\/(.*?)\/(.*)/;
+
+	// regular expression to extract prefix and encoded object from apgcode
+	var codeRegex = /^(.*?)_(.*)$/;
+
+	var matches = locRegex.exec(document.location);
+	if(matches) {
+
+		var params = new Object;
+
+		// parameters extracted from URL
+		params["apgcode"] = matches[1];
+		params["rule"   ] = matches[2];
+
+		if(matches[1] == "PATHOLOGICAL") {
+
+			params["prefix"] = "PATHOLOGICAL";
+			params["object"] = "";
+
+		} else {
+
+			// separate prefix from code proper.
+			// FIXME: shouldn't simply assume this succeeds, I guess.
+			var pieces = codeRegex.exec(matches[1]);
+
+			params["prefix" ] = pieces[1];
+			params["object" ] = pieces[2];
+
+		}
+
+		// other parameters
+		// (none yet)
+
+		return params;
+	}
+
+	// location didn't match.
+	return null;
+
+}
+
+/****************************************
+ * General GoL-related helper functions *
+ ****************************************/
+
+// return an empty universe of the desired size
+function emptyUniverse(bx, by) {
+
+	// there's no autovivification.
+	var universe = new Array(bx);
+	for (var i = 0; i < bx; i++) {
+		universe[i] = new Array(by);
+	}
+
+	return universe;
+}
+
+// convert a rulestring to slashed uppercase notation, e.g. "B3/S23" instead
+// of "b3s23" etc. Note that named rules (e.g. "tlife") are left alone, as are
+// neighborhood conditions in non-totalistic rules in Hensel notation.
+function ruleSlashedUpper(rule) {
+
+	rule = rule.replace(new RegExp("b", "g"), "B");
+	rule = rule.replace(new RegExp("s", "g"), "/S");
+
+	// we may have introduced double slashes.
+	rule = rule.replace(new RegExp("//", "g"), "/");
+
+	return rule;
+
+}
+
+
+/************************************
+ * apgcode-related helper functions *
+ ************************************/
+
+// decode w/x/y in an apgcode.
+// FIXME: there's got to be a more elegant/idiomatic way of doing this.
+function apgcodeDecodeWXY(code) {
+
+	// replace y0 to y9 with 4 to 13 zeroes, respectively.
+	for(var i = 0; i <= 9; i++) {
+		code = code.replace(new RegExp("y" + i.toString(), "g"), "0".repeat(i + 4));
+	}
+
+	// replace ya to yz with 14 to 39 zeroes, respectively.
+	// NOTE: 97=ord('a'); 122=ord('z').
+	for(var i = 97; i <= 122; i++) {
+		code = code.replace(new RegExp("y" + String.fromCharCode(i), "g"), "0".repeat(i - 83));
+	}
+
+	// finally, replace w and x with 2 and 3 zeroes, respectively.
+	// NOTE: this needs to come last so yw and yx will be handled correctly.
+	code = code.replace("w", "00");
+	code = code.replace("x", "000");
+
+	return code;
+
+}
+
+// Convert an object (represented by its apgcode) to a pattern.
+function apgcodeToPattern(object, rule) {
+
+	// create a 40x40 array to hold the pattern. Note that 40x40 is the 
+	// maximum object size;  larger objects are classified as PATHOLOGICAL on
+	// Catagolue.
+	var pattern = emptyUniverse(40, 40);
+
+	// decode w/x/y
+	object = apgcodeDecodeWXY(object);
+
+	// split object's apgcode into strips.
+	var strips = object.split("z");
+
+	// bounding box; this is computed en passant.
+	var bx = 0;
+	var by = 0;
+
+	for(var i = 0; i < strips.length; i++) {
+
+		// split strip into characters.
+		var characters = strips[i].split("");
+
+		for(var j = 0; j < characters.length; j++) {
+			var charCode = characters[j].charCodeAt(0);
+
+			// decode character. Letters a-v denote numbers 10-31.
+			var number = 0;
+			if((charCode >= 48) && (charCode <= 57)) {
+				number = charCode - 48;
+			} else if((charCode >= 97) && (charCode <= 118)) {
+				number = charCode - 87;
+			}
+
+			// each character encodes five bits.
+			for(var bit = 0; bit <= 4; bit++) {
+
+				var x = j;
+				var y = i * 5 + bit;
+
+				// If a bit is set...
+				if(number & (Math.pow(2, bit))) {
+
+					// take note of bounding box.
+					if(x > bx)
+						bx = x;
+
+					if(y > by)
+						by = y;
+
+					// and set the cell for this bit.
+					pattern[x][y] = 1;
+				}
+			}
+		}
+	}
+
+	var ret = new Object();
+
+	ret["pattern"] = pattern;
+	ret["bx"     ] = bx;
+	ret["by"     ] = by;
+	ret["rule"   ] = rule;
+
+	return ret;
+}
+
+/********************************
+ * RLE-related helper functions *
+ ********************************/
+
+// return an encoded RLE run.
+function RLEAddRun(count, state) {
+
+	var ret = "";
+
+	if(count > 1)
+		ret += count.toString();
+
+	// dead cells are encoded as "b", live cells as "o".
+	if(state == 1)
+		ret += "o";
+	else
+		ret += "b";
+
+	return ret;
+}
+
+// convert a pattern to an RLE string.
+function patternToRLE(patternObject) {
+
+	// extract values
+	var pattern = patternObject["pattern"];
+	var bx      = patternObject["bx"];
+	var by      = patternObject["by"];
+	var rule    = patternObject["rule"];
+
+	// RLE pattern
+	// the first line is a header.
+	var RLE = "x = " + (bx + 1) + ", y = " + (by + 1) + ", rule = " + ruleSlashedUpper(rule) + "\n";
+
+	// state of the ongoing run
+	var currentState = "NONE";
+	var runCount     = 0;
+
+	var currentLine  = "";
+
+	// read pattern linewise
+	for(var i = 0; i <= by; i++) {
+		for(var j = 0; j <= bx; j++) {
+
+			// current cell we're looking at
+			var cell = pattern[j][i];
+
+			// did we change state?
+			if(cell != currentState) {
+
+				// if our line's getting too long, flush it.
+				// FIXME: this may actually produce lines slightly longer 
+				// than 70 chars. Not a problem in practice, but strictly
+				// speaking a violation of the spec.
+				if(currentLine.length >= 70) {
+					RLE         += currentLine + "\n";
+					currentLine  = "";
+				}
+
+				// if we have an ongoing run, wrap that up.
+				if(currentState != "NONE")
+					currentLine += RLEAddRun(runCount, currentState);
+
+				// begin a new run
+				currentState = cell;
+				runCount     = 1;
+
+			} else
+				// continue ongoing run
+				runCount++;
+
+		}
+
+		// wrap up current run.
+		currentLine += RLEAddRun(runCount, currentState);
+
+		// reset run.
+		runCount     = 0;
+		currentState = "NONE";
+
+		// if this isn't the last line, begin a new one.
+		if(i < by)
+			currentLine += "$";
+	}
+
+	// wrap up RLE
+	RLE += currentLine + "!\n";
+
+	return RLE;
+
+}
+
+/***********************
+ * Major functionality *
+ ***********************/
+
 // sort the sample soups on a Catagolue object page by symmetry.
-function sortSampleSoups() {
+function sortSampleSoups(params) {
 
 	// regular expression to extract symmetries from sample soup links
 	var symRegex   = /hashsoup\/(.*?)\/.*?\/(.*?)$/;
@@ -52,18 +368,15 @@ function sortSampleSoups() {
 	// hash of arrays containing sample soup links, grouped by symmetry
 	var soupLinks  = new Object();
 
-	// rulestring
-	var rulestring = "";
-  
 	// total number of sample soups
 	var totalSoups = 0;
   
 	// paragraph holding the sample soups.
-	var sampleSoupParagraph = findSampleSoupParagraph();
+	var sampleSoupsParagraph = findSampleSoupsParagraph();
   
 	// parse links on this page, and convert HTMLCollection to an array so it 
 	// won't be "live" and change underneath us when we remove those links.
-	var links = Array.prototype.slice.call(sampleSoupParagraph.getElementsByTagName("a"));
+	var links = Array.prototype.slice.call(sampleSoupsParagraph.getElementsByTagName("a"));
 	for(var i = 0; i < links.length; i++) {
 	  
 		var link	   = links[i];
@@ -72,10 +385,6 @@ function sortSampleSoups() {
 		var matches	= symRegex.exec(linkTarget);
 		if(matches) {
 
-			// extract rulestring from link target.
-			// FIXME: there's gotta be a better way to get the rulestring.
-			rulestring = matches[2];
-		  
 			// there's no autovivification, sigh.
 			if(!soupLinks[matches[1]]) {
 			  soupLinks[matches[1]] = [];
@@ -109,7 +418,7 @@ function sortSampleSoups() {
 	headerRow.appendChild(header3);
 
 	// insert table into page, replacing the old sample soup paragraph.
-	sampleSoupParagraph.parentNode.replaceChild(table, sampleSoupParagraph);
+	sampleSoupsParagraph.parentNode.replaceChild(table, sampleSoupsParagraph);
 
 	// iterate through symmetries and add new links.
 	var symmetries = Object.keys(soupLinks).sort();
@@ -128,7 +437,7 @@ function sortSampleSoups() {
 
 		// create a link to the main census page for this rulesym.
 		var censusLink = document.createElement("a");
-		censusLink.setAttribute("href", "/census/" + rulestring + "/" + symmetries[i]);
+		censusLink.setAttribute("href", "/census/" + params["rule"] + "/" + symmetries[i]);
 		censusLink.textContent = symmetries[i];
 		tableCell1.appendChild(censusLink);
 
@@ -164,5 +473,46 @@ function sortSampleSoups() {
   
 }
 
+function objectToRLE(params) {
+
+	var prefix = params["prefix"];
+	var object = params["object"];
+	var rule   = params["rule"  ];
+
+	// regex to test prefix
+	var prefixRegex = /^x[pqs]/;
+
+	// only run for known objects.
+	if(object == null)
+		return;
+
+	// only run for spaceships (xq), oscillators (xp) and still lifes (xs).
+	if(!prefixRegex.test(prefix))
+		return;
+
+	// convert object to pattern, and pattern to RLE.
+	var pattern = apgcodeToPattern(object, rule);
+	var RLE     = patternToRLE    (pattern);
+
+	// find the "Comments" H2
+	var commentsH2 = findCommentsH2();
+
+	// create a new heading for the RLE code and insert it.
+	var RLEHeading = document.createElement("h3");
+	RLEHeading.textContent = "RLE";
+
+	commentsH2.parentNode.insertBefore(RLEHeading,  commentsH2);
+
+	// create a textarea for the RLE code and insert it.
+	var RLETextArea = document.createElement("textarea");
+	RLETextArea.setAttribute("style"    , "width: 100%"      );
+	RLETextArea.setAttribute("rows"     , "10"               );
+	RLETextArea.setAttribute("readonly" , "readonly"         );
+	RLETextArea.textContent = RLE;
+
+	commentsH2.parentNode.insertBefore(RLETextArea, commentsH2);
+
+}
+
 // ### MAIN ###
-sortSampleSoups();
+MAIN();
