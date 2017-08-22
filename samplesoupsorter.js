@@ -3,7 +3,7 @@
 // @namespace   None
 // @description Sorts sample soup links on Catagolue object pages by symmetry.
 // @include     https://catagolue.appspot.com/object/*
-// @version     1.1
+// @version     1.2
 // @grant       none
 // ==/UserScript==
 
@@ -30,7 +30,8 @@ function appendHR(node) {
 
 	var hrRow = document.createElement("tr");
 	node.appendChild(hrRow);
-		  
+
+	// HACK: hardcoded colspan=3.
 	var hrCell = document.createElement("td");
 	hrCell.setAttribute("colspan", "3");
 	hrCell.setAttribute("style", "padding-top: 0; padding-bottom: 0");
@@ -46,10 +47,13 @@ function appendHR(node) {
 function sortSampleSoups() {
 
 	// regular expression to extract symmetries from sample soup links
-	var symRegex   = /hashsoup\/(.*?)\//;
+	var symRegex   = /hashsoup\/(.*?)\/.*?\/(.*?)$/;
   
 	// hash of arrays containing sample soup links, grouped by symmetry
 	var soupLinks  = new Object();
+
+	// rulestring
+	var rulestring = "";
   
 	// total number of sample soups
 	var totalSoups = 0;
@@ -67,6 +71,10 @@ function sortSampleSoups() {
 	  
 		var matches	= symRegex.exec(linkTarget);
 		if(matches) {
+
+			// extract rulestring from link target.
+			// FIXME: there's gotta be a better way to get the rulestring.
+			rulestring = matches[2];
 		  
 			// there's no autovivification, sigh.
 			if(!soupLinks[matches[1]]) {
@@ -113,15 +121,23 @@ function sortSampleSoups() {
 		// create a new row holding the soup links for this symmetry.
 		var tableRow = document.createElement("tr");
 		table.appendChild(tableRow);
-	  
+
+		// create a table cell indicating the symmetry.
 		var tableCell1 = document.createElement("td");
-		tableCell1.textContent = symmetries[i];
 		tableRow.appendChild(tableCell1);
-	  
+
+		// create a link to the main census page for this rulesym.
+		var censusLink = document.createElement("a");
+		censusLink.setAttribute("href", "/census/" + rulestring + "/" + symmetries[i]);
+		censusLink.textContent = symmetries[i];
+		tableCell1.appendChild(censusLink);
+
+		// create a table cell indicating the number of sample soup.
 		var tableCell2 = document.createElement("td");
 		tableCell2.textContent = soupLinks[symmetries[i]].length;
 		tableRow.appendChild(tableCell2);
-	  
+
+		// create a table cell holding the sample soup links.
 		var tableCell3 = document.createElement("td");
 		for(var j = 0; j < soupLinks[symmetries[i]].length; j++) {
 			tableCell3.appendChild(soupLinks[symmetries[i]][j]);
