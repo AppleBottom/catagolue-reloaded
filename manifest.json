@@ -1,6 +1,6 @@
 {
 	"name": "Catagolue Reloaded",
-	"version": "2.2",
+	"version": "2.3",
 	"manifest_version": 2,
 
 	"description": "Useful enhancements for Adam P. Goucher's Catagolue",
@@ -19,6 +19,12 @@
 			"matches": ["*://catagolue.appspot.com/*"],
 			"include_globs": ["*://catagolue.appspot.com/object/*"],
 			"js": ["samplesoupsorter.js"]
+		},
+		{
+			"matches": ["*://catagolue.appspot.com/*"],
+			"include_globs": ["*://catagolue.appspot.com/census/*"],
+			"js": ["symmetryinjector.js"]
 		}
+
 	]
 }

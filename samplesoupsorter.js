@@ -123,10 +123,29 @@ function readParams() {
 
 		var params = new Object;
 
-		// parameters extracted from URL
-		params["apgcode"] = matches[1];
-		params["rule"   ] = matches[2];
+		// parameters extracted from URL go here.
 
+		params["apgcode"] = matches[1];
+
+		// the rulestring may or may not contain the symmetry as well.
+		// Normally it won't, but if the user came from a page that our
+		// symmetry injector script ran on, it will.
+		if(matches[2].indexOf("/") == -1) {
+
+			params["rule"    ] = matches[2];
+			params["symmetry"] = null;
+
+		} else {
+
+			var pieces = matches[2].split("/", 2);
+
+			params["rule"    ] = pieces[0];
+			params["symmetry"] = pieces[1];
+
+		}
+
+		// pathologicals do not have an object code apart from the prefix
+		// itself.
 		if(matches[1] == "PATHOLOGICAL") {
 
 			params["prefix"] = "PATHOLOGICAL";
@@ -143,7 +162,7 @@ function readParams() {
 
 		}
 
-		// other parameters
+		// other parameters go here.
 		// (none yet)
 
 		return params;
@@ -575,10 +594,11 @@ function addNavLinks(params) {
 
 	var rule     = params["rule"];
 	var prefix   = params["prefix"];
+	var symmetry = params["symmetry"];
 
-	// unfortunately there is no way to tell which symmetry we came from, so
-	// we default to C1.
-	var symmetry = "C1";
+	// if symmetry is not set, default to C1.
+	if(!symmetry)
+		symmetry = "C1";
 
 	// heading containing the object's code
 	var titleHeading = findTitleHeading();
