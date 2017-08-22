@@ -13,7 +13,7 @@
 var breadcrumbSeparator = " » "; // > ›
 
 // change these in case Catagolue moves.
-var catagolueURLscheme = "https://";
+var catagolueURLScheme = "https://";
 var catagolueHostName  = "catagolue.appspot.com";
 
 // MAIN function.
