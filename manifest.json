@@ -1,6 +1,6 @@
 {
 	"name": "Catagolue Reloaded",
-	"version": "3.8",
+	"version": "3.9",
 	"manifest_version": 2,
 
 	"description": "Useful enhancements for Adam P. Goucher's Catagolue",
@@ -13,18 +13,18 @@
 		"48": "catagolue2.0_48.png",
 		"16": "catagolue2.0_16.png"
 	},
-
 	"web_accessible_resources": [
 		"images/closeButton.png",
-		"scripts/md5.js",
+		"scripts/comments.js",
 		"scripts/dragondrop.js",
+		"scripts/md5.js",
 		"scripts/sampleSoupOverlay.js"
 	],
 
 	"content_scripts": [
 		{
 			"matches": ["*://catagolue.appspot.com/*"],
-			"include_globs": ["*://catagolue.appspot.com/object/*"],
+			"include_globs": ["*://catagolue.appspot.com/object/*", "*://catagolue.appspot.com/object?*"],
 			"js": ["catagoluereloaded.js"]
 		},
 		{

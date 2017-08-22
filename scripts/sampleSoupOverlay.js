@@ -3,7 +3,8 @@
 // change this in case Catagolue moves.
 var catagolueHostName  = "catagolue.appspot.com";
 
-// close button (PNG image).
+// close button (PNG image), encoded as base64 using David Wilkinson's data:
+// URI generator: http://dopiaza.org/tools/datauri/index.php
 // NOTE: it would be nicer to include this in the extension as a proper image
 // file, but since this is an *injected* script it cannot use chrome.extension
 // .getURL to access extension resources.
