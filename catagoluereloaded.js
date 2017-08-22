@@ -1,9 +1,9 @@
-// ==UserScript==
+// ==UrerScript==
 // @name        Catagolue Reloaded
 // @namespace   None
 // @description Various useful tweaks to Catagolue object pages.
 // @include     https://catagolue.appspot.com/object/*
-// @version     2.2
+// @version     3.0
 // @grant       none
 // ==/UserScript==
 
@@ -22,7 +22,7 @@ function MAIN() {
 
 		// do our work.
 		addNavLinks    (params);
-		sortSampleSoups(params);
+		handleSampleSoups(params);
 		objectToRLE    (params);
 
 	} else {
@@ -94,17 +94,19 @@ function findSampleSoupsParagraph() {
 // append a table row containing a hr element to a node (a table, in practice).
 function appendHR(node) {
 
-	var hrRow = document.createElement("tr");
-	node.appendChild(hrRow);
+	var hrRow  = document.createElement("tr");
+	var hrCell = document.createElement("td");
+	var hr     = document.createElement("hr");
 
 	// HACK: hardcoded colspan=3.
-	var hrCell = document.createElement("td");
-	hrCell.setAttribute("colspan", "3");
-	hrCell.setAttribute("style", "padding-top: 0; padding-bottom: 0");
-	hrRow.appendChild(hrCell);
+	hrCell.colSpan             = "3";
+	hrCell.style.paddingTop    = "0";
+	hrCell.style.paddingBottom = "0"
+    hr.    style.margin        = "0";
 
-	var hr = document.createElement("hr");
-	hr.setAttribute("style", "margin: 0");
+
+	node.  appendChild(hrRow);
+	hrRow. appendChild(hrCell);
 	hrCell.appendChild(hr);
 
 }
@@ -179,7 +181,7 @@ function makeLink(linkTarget, linkText) {
 	// create a new "a" element
 	var link = document.createElement("a");
 
-	link.setAttribute("href", linkTarget);
+	link.href        = linkTarget;
 	link.textContent = linkText;
 
 	return link;
@@ -433,12 +435,185 @@ function patternToRLE(patternObject) {
  * Major functionality *
  ***********************/
 
+/*** INJECTED SCRIPT ***/
+
+var injectedScript = `
+
+// Event handler to close sample soup overlay. Based on (with modifications)
+// https://stackoverflow.com/posts/3369743/revisions .
+function closeSoupOverlay(evt) {
+
+    evt          = evt || window.event;
+    var isEscape = false;
+    var isClick  = false;
+
+    if("key" in evt)
+        isEscape = (evt.key == "Escape");
+    else
+        isEscape = (evt.keyCode == 27);
+
+    if("type" in evt)
+        isClick = (evt.type == "mousedown");
+
+    if(isEscape || isClick) {
+        var overlayDiv = document.getElementById("sampleSoupOverlay");
+        if(overlayDiv)
+            overlayDiv.parentNode.removeChild(overlayDiv);
+    }
+
+}
+
+function overlaySoup(soupURL, symmetry, soupNumber, totalSoups) {
+
+    var color = symmetryColors[symmetry] || "black";
+
+	// Sample soup overlay, based on (with modifications) Method 5 on
+	// http://www.vikaskbh.com/five-css-techniques-make-overlay-div-centered/
+
+	// create the elements we'll need.
+	var overlayDiv         = document.createElement("div");
+    var overlayInnerDiv    = document.createElement("div");
+    var overlayShadingDiv  = document.createElement("div");
+    var introParagraph     = document.createElement("p");
+    var sampleSoupTextarea = document.createElement("textarea");
+
+	// style outer div.
+    overlayDiv.id             = "sampleSoupOverlay";
+    overlayDiv.style.position = "fixed";
+    overlayDiv.style.top      = "0";
+    overlayDiv.style.left     = "0";
+    overlayDiv.style.width    = "100%";
+    overlayDiv.style.zIndex   = "1";
+    overlayDiv.style.height   = "100%";
+
+	// style inner div.
+	// NOTE: margin-left must be half of width for the div to be centered.
+	// NOTE 2: border color matches the color of the sample soup dots for
+	// this symmetry.
+	// NOTE 3: #003040 is a shade of deep cerulean, taken from Catagolue's
+	// background image.
+    overlayInnerDiv.style.position        = "relative";
+    overlayInnerDiv.style.left            = "50%";
+    overlayInnerDiv.style.marginLeft      = "-375px";
+    overlayInnerDiv.style.border          = "5px outset " + color;
+    overlayInnerDiv.style.borderRadius    = "10px";
+    overlayInnerDiv.style.backgroundColor = "white";
+    overlayInnerDiv.style.color           = "black";
+    overlayInnerDiv.style.width           = "750px";
+    overlayInnerDiv.style.zIndex          = "3";
+    overlayInnerDiv.style.top             = "25%";
+    overlayInnerDiv.style.minimumHeight   = "50%";
+    overlayInnerDiv.style.padding         = "1em";
+    overlayInnerDiv.style.boxShadow       = "10px -10px 10px 0px #003040";
+
+	// style the div that will shade the remainder of the page behind the
+	// sample soup while the overlay is open.
+    overlayShadingDiv.style.position        = "fixed";
+    overlayShadingDiv.style.width           = "100%";
+    overlayShadingDiv.style.height          = "100%";
+    overlayShadingDiv.style.margin          = "auto";
+    overlayShadingDiv.style.backgroundColor = "black";
+    overlayShadingDiv.style.opacity         = "0.5";
+    overlayShadingDiv.style.zIndex          = "2";
+    overlayShadingDiv.style.top             = "0";
+    overlayShadingDiv.style.left            = "0";
+
+	// clicking outside the overlay will close it.
+    overlayShadingDiv.onmousedown           = closeSoupOverlay;
+ 
+	// a short introductory note informing the user which soup this is.
+    introParagraph.innerHTML       = symmetry + " soup &#x2116; " + soupNumber.toString() + " / " + totalSoups.toString() + ": ";
+    introParagraph.style.marginTop = "0";
+
+	// the textarea that will hold the soup.
+    sampleSoupTextarea.id          = "sampleSoupTextarea";
+    sampleSoupTextarea.style.width = "100%";
+    sampleSoupTextarea.rows        = "34";
+    sampleSoupTextarea.readOnly    = true;
+    sampleSoupTextarea.textContent = "Loading " + soupURL + ", please wait...";
+
+	// assemble elements.
+    document.getElementById("sampleSoupTable").appendChild(overlayDiv);
+    overlayDiv.appendChild(overlayInnerDiv);
+    overlayDiv.appendChild(overlayShadingDiv);
+    overlayInnerDiv.appendChild(introParagraph);
+    overlayInnerDiv.appendChild(sampleSoupTextarea);
+
+	// asynchronous request to retrieve the soup.
+    var sampleSoupRequest = new XMLHttpRequest();
+
+	// once the soup is loaded, put it into the textarea.
+    sampleSoupRequest.addEventListener("load", function() {
+            var sampleSoupTextarea = document.getElementById("sampleSoupTextarea");
+            if(sampleSoupTextarea)
+                sampleSoupTextarea.textContent = sampleSoupRequest.responseText;
+        });
+
+	// fire off request.
+    sampleSoupRequest.open("GET", soupURL);
+    sampleSoupRequest.send();
+
+}
+
+// colors used for the various symmetries. Color values are probably
+// autogenerated from the symmetries' names, but I don't know how, so here's
+// a hardcoded list.
+var symmetryColors = new Object();
+
+// standard symmetries. 
+symmetryColors["25pct"] = "#72da55";
+symmetryColors["75pct"] = "#10963a";
+symmetryColors["8x32" ] = "#6d0ecf";
+symmetryColors["C1"   ] = "black";
+symmetryColors["C2_1" ] = "#f83e05";
+symmetryColors["C2_2" ] = "#31a6d8";
+symmetryColors["C2_4" ] = "#aceb02";
+symmetryColors["C4_1" ] = "#d085ff";
+symmetryColors["C4_4" ] = "#cd14a0";
+symmetryColors["D2_+1"] = "#39bab9";
+symmetryColors["D2_+2"] = "#747d16";
+symmetryColors["D2_x" ] = "#fb71fe";
+symmetryColors["D4_+1"] = "#f6b2b6";
+symmetryColors["D4_+2"] = "#f8e612";
+symmetryColors["D4_+4"] = "#cfc20e";
+symmetryColors["D4_x1"] = "#ae360f";
+symmetryColors["D4_x4"] = "#3e5b59";
+symmetryColors["D8_1" ] = "#ed65b6";
+symmetryColors["D8_4" ] = "#a621fb";
+
+// "weird" symmetries
+symmetryColors["D4 +4"] = "#d32f3f";
+symmetryColors["D8_+4"] = "#0bb2a2";
+
+// register an event handler so the soup overlay can be closed by pressing escape.
+document.onkeydown = closeSoupOverlay;
+`;
+
+// *** INJECTED SCRIPT ENDS ***
+
+// inject a function to display sample soups in an overlay.
+function injectOverlaySoupScript() {
+
+	// create a new script element
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+
+	// FIXME: is there a better way of adding the actual script?
+	// FIXME 2: for that matter, why does Javascript/Opera interpret comments 
+	// in single-quoted strings?
+	script.textContent = injectedScript;
+
+	// append script to document
+	document.getElementsByTagName("head")[0].appendChild(script);
+
+}
+
 // sort the sample soups on a Catagolue object page by symmetry.
-function sortSampleSoups(params) {
+function handleSampleSoups(params) {
 
 	// regular expression to extract symmetries from sample soup links
 	var symRegex   = /hashsoup\/(.*?)\/.*?\/(.*?)$/;
-  
+
 	// hash of arrays containing sample soup links, grouped by symmetry
 	var soupLinks  = new Object();
 
@@ -447,10 +622,17 @@ function sortSampleSoups(params) {
   
 	// paragraph holding the sample soups.
 	var sampleSoupsParagraph = findSampleSoupsParagraph();
-  
+
 	// parse links on this page, and convert HTMLCollection to an array so it 
 	// won't be "live" and change underneath us when we remove those links.
 	var links = Array.prototype.slice.call(sampleSoupsParagraph.getElementsByTagName("a"));
+
+	// we want to have soup links pop up an overlay with a textarea. In order 
+	// to do this, we set an onclick handler on the links below that calls a
+	// function doing this. This function must live in the document, however,
+	// so we inject it now.
+	injectOverlaySoupScript();
+
 	for(var i = 0; i < links.length; i++) {
 	  
 		var link	   = links[i];
@@ -473,7 +655,11 @@ function sortSampleSoups(params) {
 
 	// now that all the links are collected and removed, add a table.
 	var table = document.createElement("table");
-	table.setAttribute("style", "background-color: #a0ddcc; border: 2px solid; border-radius: 10px; width: 100%");
+	table.id                    = "sampleSoupTable";
+	table.style.backgroundColor = "#a0ddcc";
+	table.style.border          = "2px solid";
+	table.style.borderRadius    = "10px";
+	table.style.width           = "100%";
 
 	// add table headers.
 	var headerRow = document.createElement("tr");
@@ -498,6 +684,9 @@ function sortSampleSoups(params) {
 	var symmetries = Object.keys(soupLinks).sort();
 	for(var i = 0; i < symmetries.length; i++) {
 
+		var symmetry = symmetries[i];
+		var numSoups = soupLinks[symmetry].length;
+
 		// add a hr between table rows, for the sake of looks.
 		appendHR(table);
 
@@ -511,20 +700,33 @@ function sortSampleSoups(params) {
 
 		// create a link to the main census page for this rulesym.
 		var censusLink = document.createElement("a");
-		censusLink.setAttribute("href", "/census/" + params["rule"] + "/" + symmetries[i]);
-		censusLink.textContent = symmetries[i];
+		censusLink.href        = "/census/" + params["rule"] + "/" + symmetry;
+		censusLink.textContent = symmetry;
 		tableCell1.appendChild(censusLink);
 
 		// create a table cell indicating the number of sample soup.
 		var tableCell2 = document.createElement("td");
-		tableCell2.textContent = soupLinks[symmetries[i]].length;
+		tableCell2.textContent = numSoups;
 		tableRow.appendChild(tableCell2);
 
 		// create a table cell holding the sample soup links.
 		var tableCell3 = document.createElement("td");
-		for(var j = 0; j < soupLinks[symmetries[i]].length; j++) {
-			tableCell3.appendChild(soupLinks[symmetries[i]][j]);
+		for(var j = 0; j < numSoups; j++) {
+
+			var link = soupLinks[symmetry][j];
+
+			// modify link so that when the user's browsing with Javascript
+			// enabled, clicking it pops up an overlay with the sample soup
+			// in a textarea.
+			// NOTE: returning false here keeps the link's href from being
+			// loaded after the function has run. Note further that returning
+			// false FROM the function does not work.
+			link.setAttribute("onclick", 'overlaySoup("' + link.href + '", "' + symmetry + '", ' + (j + 1).toString() + ', ' + numSoups.toString() + '); return false');
+
+			// put link in this table cell.
+			tableCell3.appendChild(link);
 			tableCell3.appendChild(document.createTextNode(" "));
+
 		}
 		tableRow.appendChild(tableCell3);
 	  
@@ -580,9 +782,9 @@ function objectToRLE(params) {
 
 	// create a textarea for the RLE code and insert it.
 	var RLETextArea = document.createElement("textarea");
-	RLETextArea.setAttribute("style"    , "width: 100%"      );
-	RLETextArea.setAttribute("rows"     , "10"               );
-	RLETextArea.setAttribute("readonly" , "readonly"         );
+	RLETextArea.style.width = "100%";
+	RLETextArea.rows        = "10";
+	RLETextArea.readOnly    = true;
 	RLETextArea.textContent = RLE;
 
 	commentsH2.parentNode.insertBefore(RLETextArea, commentsH2);
@@ -616,11 +818,11 @@ function addNavLinks(params) {
 	navigationParagraph.appendChild(document.createTextNode("You are here: "));
 	navigationParagraph.appendChild(makeLink("/census/", "Census"));
 	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
-	navigationParagraph.appendChild(makeLink("/census/" + rule + "/", rule));
+	navigationParagraph.appendChild(makeLink("/census/" + rule, rule));
 	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
-	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/", symmetry));
+	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry, symmetry));
 	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
-	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/" + prefix + "/", prefix));
+	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/" + prefix, prefix));
 
 }
 
