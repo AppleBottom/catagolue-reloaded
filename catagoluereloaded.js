@@ -280,6 +280,73 @@ function readParams() {
 
 	}
 
+	// we now classify the rule. For starters, we set all possible types to
+	// false.
+	params["largerthanlife" ] = false;
+	params["generations"    ] = false;
+	params["nontotalistic"  ] = false;
+	params["outertotalistic"] = false;
+
+	// by default, rules also have 2 states (dead and live).
+	params["states"         ] = 2;
+
+	if(params["rule"].substr(0, 1) == "r") {
+		params["largerthanlife"] = true;
+
+		// attempt to extract info on Larger than Life rules. If this doesn't
+		// work, bail out.
+		var matches = /^r(\d+)b(\d*)t(\d*)s(\d*)t(\d*)$/.exec(params["rule"]);
+
+		if(matches) {
+			params["range"] = matches[1];
+			params["bmin" ] = matches[2];
+			params["bmax" ] = matches[3];
+			params["smin" ] = matches[4];
+			params["smax" ] = matches[5];
+		} else
+			return null;
+
+	} else if(params["rule"].substr(0, 1) == "g") {
+		params["generations"] = true;
+
+		// attempt to extract info on Generations rules. If this doesn't work,
+		// bail out.
+		var matches = /^g(\d+)b([^s]*)s(.*)$/.exec(params["rule"]);
+
+		if(matches) {
+			params["states"] = matches[1];
+			params["b"     ] = matches[2];
+			params["s"     ] = matches[3];
+		} else
+			return null;
+
+	} else {
+
+		// attempt to extract info on isotropic rules.
+		var matches = /^b([^s]*)s(.*)$/.exec(params["rule"]);
+
+		// note that this will have failed if we're dealing with one of the 
+		// two grandfathered rulenames ("tlife" and "klife"). Since there's
+		// only two, we simply special-case these.
+		if(matches) {
+			params["b"] = matches[1];
+			params["s"] = matches[2];
+		} else if(params["rule"] == "tlife") {
+			params["b"] = "3";
+			params["s"] = "2-i34q";
+		} else if(params["rule"] == "klife") {
+			params["b"] = "34n";
+			params["s"] = "23";
+		} else
+			return null;
+		
+		if(!/^[0-8]*$/.test(params["b"]) || !/^[0-8]*$/.test(params["s"]))
+			params["nontotalistic"  ] = true;
+		else
+			params["outertotalistic"] = true;
+
+	}
+
 	// other parameters go here.
 
 	// find title heading
@@ -355,41 +422,29 @@ function emptyUniverse(bx, by) {
 
 // convert a rulestring to slashed uppercase notation, e.g. "B3/S23" instead
 // of "b3s23" etc. Generations rules such as g3b3s23 are converted to e.g.
-// B3/S23/G3, and Larger than Life rules such as r7b65t95s65t114 become e.g.
+// 23/3/3, and Larger than Life rules such as r7b65t95s65t114 become e.g.
 // R7,C0,M1,S65..114,B65..95,NM. Note that named rules (e.g. "tlife") are left
 // alone, as are neighborhood conditions in non-totalistic rules in Hensel
 // notation.
-function ruleSlashedUpper(rule) {
+function ruleSlashedUpper(params) {
 
 	var formattedrule;
 
-	if(rule.substr(0, 1) != "r") {
-		var matches = /^(?:g(\d+))?b([^s]*)s(.*)$/.exec(rule);
+	if(params["generations"])
+		formattedrule = params["s"] + "/" + params["b"] + "/" + params["states"];
 
-		if(matches) {
-			if(typeof matches[1] !== "undefined")
-				// express Generations rules in S/B/G syntax, as that's what
-				// Golly expects.
-				formattedrule = matches[3] + "/" + matches[2] + "/" + matches[1];
-			else
-				formattedrule = "B" + matches[2] + "/S" + matches[3];
-		
-		} else
-			console.log("Cannot parse rule: " + rule);
-
-	} else {
-		var matches = /^r(\d+)b(\d*)t(\d*)s(\d*)t(\d*)$/.exec(rule);
-
-		if(matches)
-			formattedrule = "R" + matches[1] + ","
+	else if(params["largerthanlife"])
+		formattedrule = "R" + params["range"] + ","
 			              + "C0,M1,"
-			              + "S" + matches[4] + ".." + matches[5] + ","
-			              + "B" + matches[2] + ".." + matches[3] + ","
+			              + "S" + params["smin"] + ".." + params["smax"] + ","
+			              + "B" + params["bmin"] + ".." + params["bmax"] + ","
 			              + "NM";
-		else
-			console.log("Cannot parse Larger than Life rule: " + rule);
 
-	}
+	else if(params["nontotalistic"] || params["outertotalistic"])
+		formattedrule = "B" + params["b"] + "/S" + params["s"];
+
+	else
+		formattedrule = params["rule"];
 
 	return formattedrule;
 
@@ -397,6 +452,7 @@ function ruleSlashedUpper(rule) {
 
 // debugging function: return a pattern object as a string, suitable for
 // visual inspection (e.g. using console.log).
+// FIXME: this isn't particularly useful for multistate rules right now.
 function patternToString(patternObject) {
 
 	// string to return
@@ -435,6 +491,9 @@ function apgcodeDecodeWXY(code) {
 
 	// replace ya to yz with 14 to 39 zeroes, respectively.
 	// NOTE: 97=ord('a'); 122=ord('z').
+	// FIXME: hardcoded ASCII values mean this would probably fail
+	// on EBCDIC platforms... but somehow that doesn't seem like
+	// a high-priority issue.
 	for(var i = 97; i <= 122; i++) {
 		code = code.replace(new RegExp("y" + String.fromCharCode(i), "g"), "0".repeat(i - 83));
 	}
@@ -448,8 +507,11 @@ function apgcodeDecodeWXY(code) {
 
 }
 
-// Convert an object (represented by its apgcode) to a pattern.
-function apgcodeToPattern(object, rule) {
+// Convert an object (represented by its apgcode, sans prefix) to a pattern.
+function apgcodeToPattern(params, object, rule) {
+
+	// extract values
+	var states = params["states"];
 
 	// create an array to hold the pattern.
 	var pattern = emptyUniverse(universeSize, universeSize);
@@ -457,58 +519,83 @@ function apgcodeToPattern(object, rule) {
 	// is this an oversized pattern?
 	var oversized = false;
 
-	// decode w/x/y
-	object = apgcodeDecodeWXY(object);
-
-	// split object's apgcode into strips.
-	var strips = object.split("z");
-
 	// bounding box; this is computed en passant.
 	var bx = 0;
 	var by = 0;
 
-	for(var i = 0; i < strips.length; i++) {
+	// decode w/x/y
+	object = apgcodeDecodeWXY(object);
 
-		// split strip into characters.
-		var characters = strips[i].split("");
+	// split object's apgcode into layers.
+	var layers = object.split("_");
 
-		for(var j = 0; j < characters.length; j++) {
-			var charCode = characters[j].charCodeAt(0);
+	for(var currentLayer = 0; currentLayer < layers.length; currentLayer++) {
 
-			// decode character. Letters a-v denote numbers 10-31.
-			var number = 0;
-			if((charCode >= 48) && (charCode <= 57)) {
-				number = charCode - 48;
-			} else if((charCode >= 97) && (charCode <= 118)) {
-				number = charCode - 87;
-			}
+		// split layer into strips.
+		var strips = layers[currentLayer].split("z");
 
-			// each character encodes five bits.
-			for(var bit = 0; bit <= 4; bit++) {
+		for(var currentStrip = 0; currentStrip < strips.length; currentStrip++) {
 
-				var x = j;
-				var y = i * 5 + bit;
+			// split strip into characters.
+			var characters = strips[currentStrip].split("");
 
-				// If a bit is set...
-				if(number & (Math.pow(2, bit))) {
+			for(var currentCharacter = 0; currentCharacter < characters.length; currentCharacter++) {
+				var charCode = characters[currentCharacter].charCodeAt(0);
 
-					// take note of bounding box.
-					if(x > bx)
-						bx = x;
+				// decode character. Letters a-v denote numbers 10-31.
+				// FIXME: hardcoded ASCII values mean this would probably fail
+				// on EBCDIC platforms... but somehow that doesn't seem like
+				// a high-priority issue.
+				var number = 0;
+				if((charCode >= 48) && (charCode <= 57))
+					number = charCode - 48;
+				else if((charCode >= 97) && (charCode <= 118))
+					number = charCode - 87;
 
-					if(y > by)
-						by = y;
+				// each character encodes five bits.
+				for(var bit = 0; bit <= 4; bit++) {
 
-					if((x >= universeSize) || (y >= universeSize))
-						oversized = true;
-					else
-						// set the cell for this bit.
-						pattern[x][y] = 1;
+					var x = currentCharacter;
+					var y = currentStrip * 5 + bit;
+
+					// If a bit is set...
+					if(number & (Math.pow(2, bit))) {
+
+						// take note of bounding box.
+						if(x > bx)
+							bx = x;
+
+						if(y > by)
+							by = y;
+
+						if((x >= universeSize) || (y >= universeSize))
+							oversized = true;
+						else
+							// set (or adjust) the cell for this bit.
+							// (Don't you wish Javascript had autovivification,
+							// or (absent that) a sane grip on definedness and
+							// undefined/null values?)
+							if(typeof pattern[x][y] === "undefined")
+								pattern[x][y]  = Math.pow(2, currentLayer);
+							else
+								pattern[x][y] += Math.pow(2, currentLayer);
+					}
 				}
 			}
 		}
 	}
 
+	// at this point, all cells are (basically) in the right state, but for 
+	// Generations rules, the ordering of the states is jumbled: 0 is dead, 1 
+	// is live, and 2,6,10,14,18,22,... are the remaining states, in REVERSE
+	// "chronological" order. We therefore need to "adjust" these states.
+	if(states > 2)
+		for(var x = 0; x < Math.min(bx + 1, universeSize); x++)
+			for(var y = 0; y < Math.min(by + 1, universeSize); y++)
+				if(typeof pattern[x][y] !== "undefined")
+					if(pattern[x][y] > 1)
+						pattern[x][y] = states - (pattern[x][y] - 2) / 4 - 1;
+					
 	var ret = new Object();
 
 	ret["pattern"  ] = pattern;
@@ -524,39 +611,63 @@ function apgcodeToPattern(object, rule) {
  * RLE-related helper functions *
  ********************************/
 
+// see http://golly.sourceforge.net/Help/formats.html#rle for more information
+// on the RLE format used by e.g. Golly.
+
 // return an encoded RLE run.
-function RLEAddRun(count, state) {
+function RLEAddRun(count, state, states) {
 
 	var ret = "";
 
 	if(count > 1)
 		ret += count.toString();
 
-	// dead cells are encoded as "b", live cells as "o".
-	if(state == 1)
-		ret += "o";
-	else
-		ret += "b";
+	if(states == 2)
+		// in two-state rules, dead cells are encoded as "b", live cells as 
+		// "o".
+		ret += (state ? "o" : "b");
+
+	else if(!state)
+		// in multi-state rules, dead cells are encoded as "."...
+		ret += ".";
+
+	else {
+		// ...and live cells are encoded as A,...,X,pA,...,pX,qA,...,qX,...,
+		// yA,...yO. (Note that a maximum of 255 states are supported.)
+		var stateSegment = Math.trunc(state / 24);
+		var stateOffset  =            state % 24;
+
+		// FIXME: hardcoded ASCII values mean this would probably fail
+		// on EBCDIC platforms... but somehow that doesn't seem like
+		// a high-priority issue.
+		if(stateSegment)
+			ret += String.fromCharCode(stateSegment + 111);
+
+		ret += String.fromCharCode(stateOffset + 64);
+	}
 
 	return ret;
 }
 
 // convert a pattern to an RLE string.
 function patternToRLE(params, patternObject) {
+	
+	// extract values
+	var states    = params["states"];
+	var name      = params["name"  ];
 
 	// extract values
-	var pattern   = patternObject["pattern"];
-	var bx        = patternObject["bx"];
-	var by        = patternObject["by"];
-	var rule      = patternObject["rule"];
+	var pattern   = patternObject["pattern"  ];
+	var bx        = patternObject["bx"       ];
+	var by        = patternObject["by"       ];
 	var oversized = patternObject["oversized"];
 
 	// RLE pattern
 	var RLE = "";
 
 	// add pattern name, if known.
-	if(params["name"])
-		RLE += "#N " + ucFirst(params["name"]) + "\n";
+	if(name)
+		RLE += "#N " + ucFirst(name) + "\n";
 
 	// add object page URL.
 	RLE += "#C " + canonicalObjectUrl(params) + "\n";
@@ -566,7 +677,7 @@ function patternToRLE(params, patternObject) {
 		RLE += "#C PATTERN EXCEEDS " + universeSize + "x" + universeSize + " BOUNDING BOX - TRUNCATED\n";
 
 	// RLE header
-	RLE += "x = " + (bx + 1) + ", y = " + (by + 1) + ", rule = " + ruleSlashedUpper(rule) + "\n";
+	RLE += "x = " + (bx + 1) + ", y = " + (by + 1) + ", rule = " + ruleSlashedUpper(params) + "\n";
 
 	// if necessary, adjust bx and by for the purpose of encoding the pattern.
 	// This keeps us from accessing pattern cells that don't actually exist
@@ -607,7 +718,7 @@ function patternToRLE(params, patternObject) {
 
 				// if we have an ongoing run, wrap that up.
 				if(currentState != "NONE")
-					currentLine += RLEAddRun(runCount, currentState);
+					currentLine += RLEAddRun(runCount, currentState, states);
 
 				// begin a new run
 				currentState = cell;
@@ -619,8 +730,9 @@ function patternToRLE(params, patternObject) {
 
 		}
 
-		// wrap up current run.
-		currentLine += RLEAddRun(runCount, currentState);
+		// wrap up current run, unless it's dead cells.
+		if(currentState)
+			currentLine += RLEAddRun(runCount, currentState, states);
 
 		// reset run.
 		runCount     = 0;
@@ -839,7 +951,7 @@ function objectToRLE(params) {
 		return;
 
 	// convert object to pattern, and pattern to RLE.
-	var pattern = apgcodeToPattern(object, rule);
+	var pattern = apgcodeToPattern(params, object, rule);
 	var RLE     = patternToRLE    (params, pattern);
 
 	// find the "Comments" H2
