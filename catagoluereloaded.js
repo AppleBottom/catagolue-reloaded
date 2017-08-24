@@ -28,6 +28,8 @@ searchProviders["LifeWiki"]          = "http://conwaylife.com/w/index.php?title=
 searchProviders["ConwayLife forums"] = "http://conwaylife.com/forums/search.php?terms=all&author=&fid[]=3&fid[]=4&fid[]=5&fid[]=7&fid[]=11&fid[]=9&fid[]=2&fid[]=14&fid[]=12&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&t=0&submit=Search&keywords=";
 searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
 
+var catagolueBaseUrl = "https://catagolue.appspot.com/";
+
 // width and height of the universe used for RLE conversion. User-configurable
 // (options), with a default of 100x100.
 // * NOTE 1: 40x40 is the maximum object size apgsearch up to version 3.x 
@@ -35,10 +37,10 @@ searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
 // recognizes larger objects and encodes them using greedy apgcodes, subject
 // to certain other, moderate constraints.
 // * NOTE 2: Catagolue itself has always handled greedy apgcodes encoding 
-// larger objects quite well. We therefore use 100x100 as a compromise. RLE 
+// larger objects quite well. We therefore use 250x250 as a compromise. RLE 
 // for patterns exceeding this will be truncated, but in practice this should
 // be fairly rare. (Famous last words!)
-var universeSize = localStorage.universeSize || 100;
+var universeSize = localStorage.universeSize || 250;
 
 // MAIN function.
 function MAIN() {
@@ -69,6 +71,29 @@ function MAIN() {
 		console.log("Could not read page parameters.");
 
 	}
+}
+
+/****************************
+ * General helper functions *
+ ****************************/
+
+// upper-case the first character of a string.
+function ucFirst(str) {
+	// guard against empty strings; str[0] will throw an error for those.
+	if (!str) return str;
+
+	return str[0].toUpperCase() + str.slice(1);
+}
+
+// return canonical URL for an object.
+function canonicalObjectUrl(params) {
+	var url = catagolueBaseUrl + "object/" + params["apgcode"] + "/" + params["rule"];
+
+	// symmetry may be null if it could not be parsed from the URL.
+	if(params["symmetry"])
+		url += "/" + params["symmetry"];
+
+	return url;
 }
 
 /*********************************
@@ -329,17 +354,44 @@ function emptyUniverse(bx, by) {
 }
 
 // convert a rulestring to slashed uppercase notation, e.g. "B3/S23" instead
-// of "b3s23" etc. Note that named rules (e.g. "tlife") are left alone, as are
-// neighborhood conditions in non-totalistic rules in Hensel notation.
+// of "b3s23" etc. Generations rules such as g3b3s23 are converted to e.g.
+// B3/S23/G3, and Larger than Life rules such as r7b65t95s65t114 become e.g.
+// R7,C0,M1,S65..114,B65..95,NM. Note that named rules (e.g. "tlife") are left
+// alone, as are neighborhood conditions in non-totalistic rules in Hensel
+// notation.
 function ruleSlashedUpper(rule) {
 
-	rule = rule.replace(new RegExp("b", "g"), "B");
-	rule = rule.replace(new RegExp("s", "g"), "/S");
+	var formattedrule;
 
-	// we may have introduced double slashes.
-	rule = rule.replace(new RegExp("//", "g"), "/");
+	if(rule.substr(0, 1) != "r") {
+		var matches = /^(?:g(\d+))?b([^s]*)s(.*)$/.exec(rule);
 
-	return rule;
+		if(matches) {
+			if(typeof matches[1] !== "undefined")
+				// express Generations rules in S/B/G syntax, as that's what
+				// Golly expects.
+				formattedrule = matches[3] + "/" + matches[2] + "/" + matches[1];
+			else
+				formattedrule = "B" + matches[2] + "/S" + matches[3];
+		
+		} else
+			console.log("Cannot parse rule: " + rule);
+
+	} else {
+		var matches = /^r(\d+)b(\d*)t(\d*)s(\d*)t(\d*)$/.exec(rule);
+
+		if(matches)
+			formattedrule = "R" + matches[1] + ","
+			              + "C0,M1,"
+			              + "S" + matches[4] + ".." + matches[5] + ","
+			              + "B" + matches[2] + ".." + matches[3] + ","
+			              + "NM";
+		else
+			console.log("Cannot parse Larger than Life rule: " + rule);
+
+	}
+
+	return formattedrule;
 
 }
 
@@ -490,7 +542,7 @@ function RLEAddRun(count, state) {
 }
 
 // convert a pattern to an RLE string.
-function patternToRLE(patternObject) {
+function patternToRLE(params, patternObject) {
 
 	// extract values
 	var pattern   = patternObject["pattern"];
@@ -500,12 +552,21 @@ function patternToRLE(patternObject) {
 	var oversized = patternObject["oversized"];
 
 	// RLE pattern
-	// the first line is a header.
-	var RLE = "x = " + (bx + 1) + ", y = " + (by + 1) + ", rule = " + ruleSlashedUpper(rule) + "\n";
+	var RLE = "";
+
+	// add pattern name, if known.
+	if(params["name"])
+		RLE += "#N " + ucFirst(params["name"]) + "\n";
+
+	// add object page URL.
+	RLE += "#C " + canonicalObjectUrl(params) + "\n";
 
 	// note truncated pattern, if necessary.
 	if(oversized)
 		RLE += "#C PATTERN EXCEEDS " + universeSize + "x" + universeSize + " BOUNDING BOX - TRUNCATED\n";
+
+	// RLE header
+	RLE += "x = " + (bx + 1) + ", y = " + (by + 1) + ", rule = " + ruleSlashedUpper(rule) + "\n";
 
 	// if necessary, adjust bx and by for the purpose of encoding the pattern.
 	// This keeps us from accessing pattern cells that don't actually exist
@@ -779,7 +840,7 @@ function objectToRLE(params) {
 
 	// convert object to pattern, and pattern to RLE.
 	var pattern = apgcodeToPattern(object, rule);
-	var RLE     = patternToRLE    (pattern);
+	var RLE     = patternToRLE    (params, pattern);
 
 	// find the "Comments" H2
 	var commentsH2 = findCommentsH2();
@@ -824,7 +885,7 @@ function addImgLink(params) {
 	var rule    = params["rule"  ];
 
 	// construct link to SVG image for this object
-	var imgLink = "https://catagolue.appspot.com/pic/" + apgcode + "/" + rule + "/pic.svg";
+	var imgLink = catagolueBaseUrl + "pic/" + apgcode + "/" + rule + "/pic.svg";
 
 	// find the "Comments" H2
 	var commentsH2 = findCommentsH2();
@@ -882,6 +943,7 @@ function addNavLinks(params) {
 	var prefix   = params["prefix"];
 	var symmetry = params["symmetry"];
 	var apgcode  = params["apgcode"];
+	var name     = params["name"];
 
 	// if symmetry is not set, default to C1.
 	if(!symmetry)
@@ -938,6 +1000,21 @@ function addNavLinks(params) {
 
 	// we added an extra separator after the last search link; remove that.
 	searchParagraph.removeChild(searchParagraph.lastChild);
+
+	// if object name is known, allow searching by name.
+	if(name) {
+		searchParagraph.appendChild(document.createElement("br"));
+		searchParagraph.appendChild(document.createTextNode("Search by name: "));
+
+		for (var searchProvider in searchProviders) {
+			searchParagraph.appendChild(makeLink(searchProviders[searchProvider] + name, searchProvider));
+			searchParagraph.appendChild(document.createTextNode(genericSeparator));
+		}
+
+		// we added an extra separator after the last search link; remove that.
+		searchParagraph.removeChild(searchParagraph.lastChild);
+	}
+
 
 }
 
