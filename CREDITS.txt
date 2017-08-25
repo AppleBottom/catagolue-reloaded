@@ -1,0 +1,12 @@
+Credits:
+
+Apple Bottom - chief extension wrangler
+Adam P. Goucher - Catagolue mastermind
+Paul Johnston - crypto code wizard
+Peter-Paul Koch - Javascript magician
+
+Bug reporters:
+
+Blinkerspawn
+Rich Holmes
+Scorbie
