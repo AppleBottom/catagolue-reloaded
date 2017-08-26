@@ -24,7 +24,7 @@ JAHs2TRznya4MO3H3e3880JAAmxj5+vthQKK8WyKNs5atUG4t2VRzadvRma/2+uprNJcqRJw
 `;
 
 // Event handler to close sample soup overlay. Based on (with modifications)
-// https://stackoverflow.com/posts/3369743/revisions .
+// Tim Down's code at https://stackoverflow.com/posts/3369743/revisions .
 function closeSoupOverlay(evt) {
 
 	evt          = evt || window.event;
@@ -32,7 +32,7 @@ function closeSoupOverlay(evt) {
 	var isClick  = false;
 
 	if("key" in evt)
-	    isEscape = (evt.key == "Escape");
+	    isEscape = (evt.key == "Escape" || evt.key == "Esc");
 	else
 	    isEscape = (evt.keyCode == 27);
 

@@ -1,4 +1,5 @@
-Version 4.5:
+Version 4.5: New: breadcrumbs navigation on census pages.
+             New: display rule/symmetry/prefix in page titles.
 
 Version 4.4: New: RLE generation for Generations rules.
              Improved: Recognize and handle grandfathered rulenames (klife 

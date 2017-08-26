@@ -8,7 +8,7 @@ Right now, the following changes are implemented:
    b) Display sample soups in a pop-up for easy copying/pasting.
    c) Add links to the hauls containing the sample soups.
    d) Encode object in RLE form for easy copying/pasting.
-   e) Add rudimentary breadcrumbs navigation links.
+   e) Add breadcrumbs navigation links.
    f) Add LifeWiki/Life forum/Google search links.
    g) Word-wrap long apgcodes.
    h) Add links to SVG images.
@@ -23,5 +23,8 @@ Right now, the following changes are implemented:
    b) Convert unordered lists to ordered.
 4. On haul pages:
    a) Word-wrap long apgcodes.
+5. On individual census pages:
+   a) Add breadcrumbs navigation links.
+   b) Adjust page titles/headings to indicate rule/symmetry/prefix/offset.
 
 Further enhancements may be added in future versions.
