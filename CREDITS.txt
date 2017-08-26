@@ -1,12 +1,17 @@
 Credits:
 
 Apple Bottom - chief extension wrangler
-Adam P. Goucher - Catagolue mastermind
-Paul Johnston - crypto code wizard
-Peter-Paul Koch - Javascript magician
+Paul Johnston, Angel Marin, Greg Holt, Andrew Kepert, Ydnar, Lostinet - crypto code
+Peter-Paul Koch, "James" (Stackoverflow), Tim Down (Stackoverflow) - Javascript
+Vikas Bhagwagar - HTML
+David Wilkinson - data: URI generator
 
 Bug reporters:
 
 Blinkerspawn
 Rich Holmes
 Scorbie
+
+Special thanks to:
+
+Adam P. Goucher - Catagolue mastermind
