@@ -1,3 +1,18 @@
+Version 4.6: New: correct sample soups for the following symmetries not 
+             handled by the server:
+                * AB_1x256_Test
+                * AB_2x128_Test
+                * AB_4x64_Test
+                * AB_256x256_Test
+		* AB_sha512_16x32_Test
+		* AB_sha512_20x20_Test
+		* 1x256X2
+		* 1x256X2+1
+             New: add pattern comments with sample soup information to sample
+             soup RLEs.
+	     Improved: merge consecutive $'s in RLE patterns.
+             Internal: added Paul Johnston's SHA-512 script.
+
 Version 4.5: New: breadcrumbs navigation on census pages.
              New: display rule/symmetry/prefix in page titles.
 
@@ -20,7 +35,7 @@ Version 4.2: New: identify (some) objects from jslife-20121230.
              New: word-wrap long apgcodes on haul pages.
              Improved: use correct sample soup overlay border colors for all 
              symmetries.
-             Internal: Added Angel Marin and Paul Johnson's SHA-256 script.
+             Internal: added Angel Marin and Paul Johnston's SHA-256 script.
 
 Version 4.1: New: organize sample soup links into chunks (currently hardcoded
              to contain 5 links each).

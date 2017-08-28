@@ -16,6 +16,17 @@ Right now, the following changes are implemented:
    j) Always display apgcode, even for named objects.
    k) Identify (some) objects appearing in Jason Summers' jslife-20121230 
       collection.
+   l) Generate correct soups for the following symmetries not supported by the
+      server:
+         * AB_1x256_Test
+         * AB_2x128_Test
+         * AB_4x64_Test
+         * AB_256x256_Test
+	 * AB_sha512_16x32_Test
+	 * AB_sha512_20x20_Test
+	 * 1x256X2
+	 * 1x256X2+1
+   m) Add RLE comments to sample soups.
 2. On object category pages:
    a) Word-wrap long apgcodes.
 3. On the main census overview page:
