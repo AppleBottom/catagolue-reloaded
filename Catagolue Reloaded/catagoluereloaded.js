@@ -355,6 +355,8 @@ function readParams() {
 	// if this object has a name (other than its apgcode), remember that.
 	if(titleHeading.textContent != params["apgcode"])
 		params["name"] = titleHeading.textContent;
+	else
+		params["name"] = "";
 
 	// return final collection of parameters.
 	return params;
@@ -746,6 +748,11 @@ function patternToRLE(params, patternObject) {
 	// wrap up RLE
 	RLE += currentLine + "!\n";
 
+	// tighten up runs of consecutive pattern linebreaks (i.e. $ characters)
+	RLE = RLE.replace(/(\${3,})/g, function(match, p1, offset, string) {
+			return (p1.length.toString() + "$");
+		});
+
 	return RLE;
 
 }
@@ -774,6 +781,9 @@ function injectScript(injectedScript) {
 // sort the sample soups on a Catagolue object page by symmetry.
 function handleSampleSoups(params) {
 
+	var apgcode = params["apgcode"];
+	var name    = params["name"   ];
+
 	// regular expression to extract symmetries from sample soup links
 	var symRegex   = /hashsoup\/(.*?)\/.*?\/(.*?)$/;
 
@@ -796,10 +806,12 @@ function handleSampleSoups(params) {
 	// so we inject it now.
 	injectScript("sampleSoupOverlay.js");
 
-	// furthermore, we need to inject Paul Johnston's MD5 and SHA-256 script, 
-	// since Javascript lacks any built-in support for computing hashes.
+	// furthermore, we need to inject Paul Johnston's MD5, SHA-256 and SHA-256
+	// scripts, since Javascript lacks any built-in support for computing 
+	// hashes.
 	injectScript("md5.js");
 	injectScript("sha256.js");
+	injectScript("sha512.js");
 
 	// finally, we need to insert Peter-Paul Koch's element dragging script,
 	// so that the soup overlay can be dragged around the page with the mouse.
@@ -893,7 +905,7 @@ function handleSampleSoups(params) {
 			// NOTE: returning false here keeps the link's href from being
 			// loaded after the function has run. Note further that returning
 			// false FROM the function does not work.
-			link.setAttribute("onclick", 'return !overlaySoup("' + link.href + '", ' + (j + 1).toString() + ', ' + numSoups.toString() + ')');
+			link.setAttribute("onclick", 'return !overlaySoup("' + link.href + '", ' + (j + 1).toString() + ', ' + numSoups.toString() + ', "' + apgcode + '", "' + name + '")');
 
 			// also set a title on this link.
 			link.setAttribute("title", symmetry + ": soup " + (j + 1).toString() + " of " + numSoups.toString());
