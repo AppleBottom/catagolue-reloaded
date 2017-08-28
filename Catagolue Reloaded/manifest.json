@@ -1,6 +1,6 @@
 {
 	"name": "Catagolue Reloaded",
-	"version": "4.5",
+	"version": "4.6",
 	"manifest_version": 2,
 
 	"description": "Useful enhancements for Adam P. Goucher's Catagolue",
@@ -24,6 +24,7 @@
 		"scripts/dragondrop.js",
 		"scripts/md5.js",
 		"scripts/sha256.js",
+		"scripts/sha512.js",
 		"scripts/sampleSoupOverlay.js",
 		"data/xp10.txt",
 		"data/xp100.txt",
