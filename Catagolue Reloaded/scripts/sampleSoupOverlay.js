@@ -269,6 +269,15 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 					// differently in an earlier version of wwei23's modified
 					// version of apgsearch 1.1, but we cannot do anything
 					// about this.
+					//
+					// FIXME: wwei23 also used the following symmetries,
+					// without explaining how these soups were generated:
+					//
+					// https://catagolue.appspot.com/census/b3s23/1X2x256X2
+					// https://catagolue.appspot.com/census/b3s23/1X2x256X2_TEST
+					// https://catagolue.appspot.com/census/b3s23/25p
+					// https://catagolue.appspot.com/census/b3s23/75pTEST
+					// https://catagolue.appspot.com/census/b3s23/WW_25c
 
 					case "AB_1x256_Test":
 						var linesToCombine = 16;
@@ -473,12 +482,87 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 
 						break;
 
+					// handle Apple Bottom's "inflation" test symmetries.
+					// As before, these are handled by the same core code, and
+					// we start by setting some parameters.
+
+					case "AB_C1_2x2_32x32_Test":
+						var expansionX = 2;
+						var expansionY = 2;
+
+						// split soup into lines. For some reason, split also
+						// returns trailing empty lines that really aren't in
+						// the actual sample soup, so we simply filter any
+						// empty lines.
+						var lines = sampleSoup.split("\n").filter(function(str) { return str.length });
+
+						// build a new soup, starting with the RLE header
+						sampleSoup = lines[0].replace("x = 16", "x = " + (16 * expansionX)).replace("y = 16", "y = " + (16 * expansionY)) + "\n";
+
+						for(var lineNumber = 1; lineNumber < lines.length; lineNumber++) {
+
+							// we build each new line by:
+							//    1) removing any end-of-line/pattern markers
+							//    2) splitting the line into characters
+							//    3) repeating each character expansionX times
+							//    4) gluing the result back together.
+							var newLine = lines[lineNumber]
+											.replace(/[!$]/, "")
+											.split('')
+											.map(function(s) { return s.repeat(expansionX) })
+											.join('');
+
+							// each new line must be appende dot the soup
+							// expansionY times.
+							for(var i = 0; i < expansionY; i++) {
+								sampleSoup += newLine;
+
+								// append end-of-line or end-of-pattern marker
+								if(lineNumber < (lines.length - 1) || (i < expansionY - 1))
+									sampleSoup += "$\n";
+								else
+									sampleSoup += "!\n";
+
+							}
+
+						}
+
+						break;
+
+					case "AB_sha512_16x32_Test":
+					// handle wwei23's 32x32 symmetry. This is just four
+					// copies of the same C1 soup glued together. See:
+					// http://www.conwaylife.com/forums/viewtopic.php?p=45555#p45555
+					case "32x32":
+
+						// split soup into lines
+						var lines = sampleSoup.split("\n");
+
+						// build a new soup, starting with the RLE header
+						sampleSoup = lines[0].replace("x = 16", "x = 32").replace("y = 16", "y = 32") + "\n";
+
+						for(var verticalCopy = 0; verticalCopy <= 1; verticalCopy++)
+							for(var lineNumber = 1; lineNumber <= 16; lineNumber++) {
+								var currentLine = lines[lineNumber].replace(/[$!]/, "");
+								sampleSoup += currentLine + currentLine;
+						
+								if(lineNumber * verticalCopy != 16)
+									sampleSoup += "$\n";
+
+							}
+
+						sampleSoup += "!\n";
+
+						break;
+
 				}
 
 			// prepend information to sample soup
 			sampleSoup = "#C " + apgcode + "\n"
 						+ "#C " + symmetry + " sample soup " + soupNumber + " of " + totalSoups + "\n"
+						+ "#C " + URLScheme + catagolueHostName + "/object/" + apgcode + "/" + rule + "/" + symmetry + "\n"
 						+ "#C " + soupURL + "\n"
+						+ "#C " + haulURL + "\n"
 						+ sampleSoup;
 
 			// also prepend name, if known
