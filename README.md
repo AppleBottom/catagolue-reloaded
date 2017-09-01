@@ -24,6 +24,7 @@ Right now, the following changes are implemented:
          * AB_256x256_Test
 	 * AB_sha512_16x32_Test
 	 * AB_sha512_20x20_Test
+	 * AB_C1_2x2_32x32_Test
 	 * 1x256X2
 	 * 1x256X2+1
    m) Add RLE comments to sample soups.
@@ -36,6 +37,8 @@ Right now, the following changes are implemented:
    a) Word-wrap long apgcodes.
 5. On individual census pages:
    a) Add breadcrumbs navigation links.
-   b) Adjust page titles/headings to indicate rule/symmetry/prefix/offset.
+   b) Indicate rule/symmetry/prefix/offset in page title/heading.
+   c) Display average objects/soup and soups/haul in intro paragraph.
+   d) Highlight "official" symmetries on rule overview pages.
 
 Further enhancements may be added in future versions.
