@@ -12,6 +12,9 @@
 // separator used for breadcrumb navigation links
 var breadcrumbSeparator = " » "; // Alternatively: > or ›
 
+// separator used for numbers.
+var numberSeparator = "\u2009"; // U+2009 THIN SPACE, aka &thinsp;
+
 // MAIN function.
 function MAIN() {
 
@@ -21,10 +24,33 @@ function MAIN() {
 	if(params != null) {
 
 		// do our work.
-		addNavLinks(params);
-		adjustTitle(params);
+		addNavLinks           (params);
+		adjustTitle           (params);
+		adjustIntroParagraph  (params);
+		markOfficialSymmetries(params);
 
 	}
+}
+
+/****************************
+ * General helper functions *
+ ****************************/
+
+// reverse a string.
+function reverse(str) {
+	return str.split('').reverse().join('');
+}
+
+// add separators to a number. This is called "commify" for historical
+// reasons.
+// NOTE: there's probably a better way of doing this.
+function commify(number, separator) {
+
+	var reverseNumberStr = reverse(number.toString());
+
+	reverseNumberStr = reverseNumberStr.replace(/(\d{3})(?=\d)(?!\d*\.)/g, "$1" + reverse(separator));
+
+	return reverse(reverseNumberStr);
 }
 
 /*********************************
@@ -280,6 +306,46 @@ function ruleSlashedUpper(params) {
 
 }
 
+// determine whether a given symmetry is "official" or not.
+function isOfficialSymmetry(symmetry) {
+	switch(symmetry) {
+		case "C1":
+		case "C2_1":
+		case "C2_2":
+		case "C2_4":
+		case "C4_1":
+		case "C4_4":
+		case "D2_+1":
+		case "D2_+2":
+		case "D2_x":
+		case "D4_+1":
+		case "D4_+2":
+		case "D4_+4":
+		case "D4_x1":
+		case "D4_x4":
+		case "D8_1":
+		case "D8_4":
+		case "8x32":
+		case "4x64":
+		case "2x128":
+		case "1x256":
+		case "SS":
+			return true;
+
+		default:
+			return false;
+
+	}
+}
+
+// determine whether a given symmetry is a test symmetry. By convention, all
+// test symmetries should end in _Test (case-insensitively), but the under-
+// score has not always been included, e.g. in 
+// https://catagolue.appspot.com/census/b3s23/75pTEST .
+function isTestSymmetry(symmetry) {
+	return (symmetry.slice(-4).toLowerCase() == "test");
+}
+
 /***********************
  * Major functionality *
  ***********************/
@@ -336,13 +402,15 @@ function addNavLinks(params) {
 
 }
 
+// adjust census title (both the document title and the main title heading)
+// to reflect the current rule/symmetry/prefix, as applicable.
 function adjustTitle(params) {
 
 	var rule     = params["rule"    ];
 	var symmetry = params["symmetry"];
 	var prefix   = params["prefix"  ];
 
-	// find heading containing the object's code and main content div.
+	// find title heading
 	var titleHeading = findTitleHeading();
 
 	var titleAmendment = ": " + ruleSlashedUpper(params);
@@ -364,6 +432,81 @@ function adjustTitle(params) {
 	// adjust document title. We could try splicing in the titleAmendment, but
 	// it's easier to just create the whole thing anew.
 	document.title = "Census" + titleAmendment + " - Catagolue";
+
+}
+
+// adjust introductory paragraph on rule/symmetry overview pages to show
+// some extra information.
+function adjustIntroParagraph(params) {
+
+	// find title heading.
+	var titleHeading   = findTitleHeading();
+
+	// find introductory paragraph.
+	var introParagraph = titleHeading.nextElementSibling;
+
+	// there may be an extra paragraph after the title heading saying that
+	// there's uncommitted hauls not included in the census. If so, the real
+	// intro paragraph is "one further down", as it were.
+	if(/uncommitted hauls/.test(introParagraph.textContent))
+		introParagraph = introParagraph.nextElementSibling;
+
+	// attempt to parse information out of intro paragraph.
+	var matches = /The\s+following\s+census\s+was\s+compiled\s+from\s+([\d\s]+)\s+committed\s+hauls\s+containing\s+([\d\s]+)\s+objects\s+generated\s+from\s+([\d\s]+)\s+soups\./.exec(introParagraph.textContent);
+
+	if(matches) {
+		var numHauls   = parseInt(matches[1].replace(/[^\d]/g, ""));
+		var numObjects = parseInt(matches[2].replace(/[^\d]/g, ""));
+		var numSoups   = parseInt(matches[3].replace(/[^\d]/g, ""));
+
+		// numSoups might be 0. If it is not, numHauls is necessarily != 0 as
+		// well, so we don't need to test for that. numObjects might still be
+		// 0, however.
+		if(numSoups) {
+			var introParagraphAmendment  = " (⌀ " 
+				+         (numObjects / numSoups).toFixed(2)                   + " objects/soup, "
+				+ commify((numSoups   / numHauls).toFixed(0), numberSeparator) + " soups/haul)."
+
+			// remove trailing period...
+			introParagraph.lastChild.textContent = introParagraph.lastChild.textContent.replace(/\.$/, "");
+
+			// ...and append new information.
+			introParagraph.appendChild(document.createTextNode(introParagraphAmendment));
+		}
+
+	}
+
+}
+
+// mark official symmetries on rule overview pages.
+function markOfficialSymmetries(params) {
+
+	var rule     = params["rule"    ];
+	var symmetry = params["symmetry"];
+
+	// only run on rule overview pages, not the more specific ones also
+	// including a symmetry (or even more).
+	if(symmetry)
+		return;
+
+	// find list items
+	var content   = document.getElementById("content");
+	var listItems = content.getElementsByTagName("li");
+
+	// iterate over all list items found and extract the census link; if the
+	// symmetry it lists is "official", adjust the link's style to make it
+	// stand out.
+	for(var listItemIndex = 0; listItemIndex < listItems.length; listItemIndex++) {
+		var censusLink = listItems[listItemIndex].firstElementChild;
+
+		var matches = /\/(.*)$/.exec(censusLink.textContent);
+		if(matches)
+			if(isOfficialSymmetry(matches[1]))
+				censusLink.style.fontWeight = "bold";
+//			else if(isTestSymmetry(matches[1]))
+//				censusLink.style.fontStyle  = "italic";
+
+	}
 
 }
 

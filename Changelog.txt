@@ -1,3 +1,12 @@
+Version 4.8: 
+
+Version 4.7: New: correct sample soups for the following symmetries:
+                * 32x32
+		* AB_C1_2x2_32x32_Test
+             New: display average objects/soup and soups/haul on census pages.
+	     New: display "official" symmetries in bold on rule overview pages.
+             Changed: also include object and haul URLs in sample soup RLE.
+
 Version 4.6: New: correct sample soups for the following symmetries not 
              handled by the server:
                 * AB_1x256_Test

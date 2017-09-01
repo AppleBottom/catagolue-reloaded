@@ -19,6 +19,11 @@ function MAIN() {
 	// adjust content DIV width.
 	adjustContentWidth();
 
+    // word-wrap census links (so very long rules don't break the layout).
+	// NOTE: we don't actually do that right now because it looks worse this
+	// way.
+//	wordwrapCensusLinks();
+
 }
 
 /*********************************
@@ -87,6 +92,20 @@ function convertLists() {
 
 		var list    = lists[i];
 		var newList = list.parentNode.replaceChild(makeNewElementFromElement("ol", list), list);
+
+	}
+
+}
+
+// word-wrap census links
+function wordwrapCensusLinks() {
+
+	var links = document.getElementsByTagName("a");
+	for(var i = 0; i < links.length; i++) {
+
+		var link = links[i];
+		if(/^\/census\/.*\//.test(link.getAttribute("href")))
+			link.style.wordBreak = "break-all"; // overflowWrap = "break-word";
 
 	}
 
