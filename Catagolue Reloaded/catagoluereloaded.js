@@ -195,9 +195,11 @@ function readParams() {
 	// hash of extracted page parameters
 	var params = new Object;
 
-	// we may not be able to extract/determine the symmetry, so just set it
-	// to null explicitely.
+	// we may not be able to extract/determine the symmetry or topology, so 
+	// just set them to null explicitely.
 	params["symmetry"] = null;
+	params["topology"] = null;
+	params["toposym" ] = null;
 
 	// parameters extracted from URL go here.
 	
@@ -220,7 +222,24 @@ function readParams() {
 			var pieces = matches[2].split("/", 2);
 
 			params["rule"    ] = pieces[0];
-			params["symmetry"] = pieces[1];
+
+			// the symmetry might include an optional topology, separated
+			// from the actual symmetry by a tilde; see the LifeWiki article
+			// at http://conwaylife.com/wiki/Catagolue_naming_conventions and
+			// http://conwaylife.com/forums/viewtopic.php?p=50407#p50407 for
+			// details.
+			if(pieces[1].indexOf("~") != -1) {
+				morePieces = pieces[1].split("~", 2);
+
+				params["topology"] = morePieces[0];
+				params["symmetry"] = morePieces[1];
+
+			} else
+				params["symmetry"] = pieces[1];
+
+			// either way, we save the unseparated topology~symmetry string as 
+			// well, since it may come in handy later.
+			params["toposym"] = pieces[1];
 
 		}
 
@@ -248,9 +267,30 @@ function readParams() {
 				params["apgcode" ] = pieces[1];
 			else if(pieces[0] == "rule")
 				params["rule"    ] = pieces[1];
-			else if(pieces[0] == "symmetry")
-				params["symmetry"] = pieces[1];
-			else
+			else if(pieces[0] == "symmetry") {
+
+				// again, the symmetry might include an optional topology, 
+				// separated from the actual symmetry by a tilde; see the 
+				// LifeWiki article at 
+				// http://conwaylife.com/wiki/Catagolue_naming_conventions and
+				// http://conwaylife.com/forums/viewtopic.php?p=50407#p50407 
+				// for details.
+				// FIXME: it probably isn't such a good idea to duplicate the
+				// above code here; put it in a common subroutine or so.
+				if(pieces[1].indexOf("~") != -1) {
+					morePieces = pieces[1].split("~", 2);
+
+					params["topology"] = morePieces[0];
+					params["symmetry"] = morePieces[1];
+
+				} else
+					params["symmetry"] = pieces[1];
+
+				// either way, we save the unseparated topology~symmetry 
+				// string as well, since it may come in handy later.
+				params["toposym"] = pieces[1];
+			
+			} else
 				console.log("Unknown query parameter: " + queryParameters[i]);
 
 		}
@@ -347,6 +387,11 @@ function readParams() {
 
 	}
 
+	// We could try to extract information on bounded grids here when 
+	// params["topology"] is set, but we don't have a need for the specific
+	// details yet, and there's a fair few topologies supported by e.g. Golly;
+	// see http://golly.sourceforge.net/Help/bounded.html for the specifics.
+
 	// other parameters go here.
 
 	// find title heading
@@ -406,6 +451,23 @@ function addClass(node, className) {
 
 }
 
+// inject a new script into the current page.
+// NOTE: only scripts listed in web_accessible_resources in the manifest file
+// can be injected this way.
+function injectScript(injectedScript) {
+
+	// create a new script element
+	var script = document.createElement("script");
+
+	// script type and source URL
+	script.type = "text/javascript";
+	script.src  = chrome.extension.getURL("scripts/" + injectedScript);
+
+	// append script to document
+	document.getElementsByTagName("head")[0].appendChild(script);
+
+}
+
 /****************************************
  * General GoL-related helper functions *
  ****************************************/
@@ -447,6 +509,16 @@ function ruleSlashedUpper(params) {
 
 	else
 		formattedrule = params["rule"];
+
+	// we cheat a bit here and assume that the topology we got does indeed
+	// conform to the guidelines set forth in
+	// http://conwaylife.com/wiki/Catagolue_naming_conventions . If it does
+	// not, this will not produce a valid topology that tools such as Golly
+	// will understand, but there's little we can do about that.
+	if(params["topology"])
+		// don't you wish Javascript had an equivalent of Perl's tr/// 
+		// operator?
+		formattedrule += ":" + params["topology"].replace("x", ",").replace("f", "*").replace("p", "+");
 
 	return formattedrule;
 
@@ -761,23 +833,6 @@ function patternToRLE(params, patternObject) {
  * Major functionality *
  ***********************/
 
-// inject a new script into the current page.
-// NOTE: only scripts listed in web_accessible_resources in the manifest file
-// can be injected this way.
-function injectScript(injectedScript) {
-
-	// create a new script element
-	var script = document.createElement("script");
-
-	// script type and source URL
-	script.type = "text/javascript";
-	script.src  = chrome.extension.getURL("scripts/" + injectedScript);
-
-	// append script to document
-	document.getElementsByTagName("head")[0].appendChild(script);
-
-}
-
 // sort the sample soups on a Catagolue object page by symmetry.
 function handleSampleSoups(params) {
 
@@ -796,10 +851,6 @@ function handleSampleSoups(params) {
 	// paragraph holding the sample soups.
 	var sampleSoupsParagraph = findSampleSoupsParagraph();
 
-	// parse links on this page, and convert HTMLCollection to an array so it 
-	// won't be "live" and change underneath us when we remove those links.
-	var links = Array.prototype.slice.call(sampleSoupsParagraph.getElementsByTagName("a"));
-
 	// we want to have soup links pop up an overlay with a textarea. In order 
 	// to do this, we set an onclick handler on the links below that calls a
 	// function doing this. This function must live in the document, however,
@@ -816,6 +867,10 @@ function handleSampleSoups(params) {
 	// finally, we need to insert Peter-Paul Koch's element dragging script,
 	// so that the soup overlay can be dragged around the page with the mouse.
 	injectScript("dragondrop.js");
+
+	// parse links on this page, and convert HTMLCollection to an array so it 
+	// won't be "live" and change underneath us when we remove those links.
+	var links = Array.prototype.slice.call(sampleSoupsParagraph.getElementsByTagName("a"));
 
 	for(var i = 0; i < links.length; i++) {
 	  
@@ -864,8 +919,39 @@ function handleSampleSoups(params) {
 	// insert table into page, replacing the old sample soup paragraph.
 	sampleSoupsParagraph.parentNode.replaceChild(table, sampleSoupsParagraph);
 
+	// Compute list of symmetries and sort it, disregarding prefixes.
+	// Don't you wish Javascript had a) better syntax for .map and .sort, to
+	// facilitate Schwartzian transforms, and b) a cmp operator? In Perl, this
+	// would be something like along the lines of the following:
+    // my $symmetries = map  { $_->[0] } 
+	//                  sort { $b->[1] cmp $a->[1] or $b->[0] cmp $a->[0] } 
+	//                  map  { [ m/^(i*(.*))$/ ] } 
+	//                  keys %soupLinks;
+	// which is much more concise.
+	var symmetries = Object.keys(soupLinks)
+		.map(function(element) {
+			var elementWithoutPrefixes = element.replace(/^i*/, "");
+
+			return [ element, elementWithoutPrefixes ];
+		})
+		.sort(function (a, b) {
+			if(a[1] > b[1])
+				return 1;
+			else if(a[1] < b[1])
+				return -1;
+			else
+				if(a[0] > b[0])
+					return 1;
+				else if(a[0] < b[0])
+					return -1;
+				else
+					return 0;
+		})
+		.map(function(element) {
+			return element[0];
+		});
+
 	// iterate through symmetries and add new links.
-	var symmetries = Object.keys(soupLinks).sort();
 	for(var i = 0; i < symmetries.length; i++) {
 
 		var symmetry = symmetries[i];
@@ -880,12 +966,28 @@ function handleSampleSoups(params) {
 
 		// create a table cell indicating the symmetry.
 		var tableCell1 = document.createElement("td");
+
+		// if we don't specify this, then setting word-break: break-all on
+		// the link further down will cause the cell to shrink too much. 200
+		// px is about the largest amount of space that "reasonable" (test)
+		// symmetries require, but the exact number could be changed in the 
+		// future, if necessary.
+		// FIXME: find a better solution for word-breaking long symmetry names
+		// that require this kind of kludge.
+		tableCell1.style.minWidth = "200px";
+
 		tableRow.appendChild(tableCell1);
 
 		// create a link to the main census page for this rulesym.
 		var censusLink = document.createElement("a");
 		censusLink.href        = "/census/" + params["rule"] + "/" + symmetry;
 		censusLink.textContent = symmetry;
+
+		// keep long symmetry names from breaking our layout. See e.g. the
+		// "marquee" symmetry (since deleted, but its sample soups remain)
+		// on https://catagolue.appspot.com/object/xq4_27deee6/b3s23/ .
+		censusLink.style.wordBreak = "break-all";
+
 		tableCell1.appendChild(censusLink);
 
 		// create a table cell indicating the number of sample soup.
@@ -1063,11 +1165,13 @@ function addImgLink(params) {
 // FIXME: rename this, or break it up. Or both.
 function addNavLinks(params) {
 
-	var rule     = params["rule"];
-	var prefix   = params["prefix"];
+	var rule     = params["rule"    ];
+	var prefix   = params["prefix"  ];
 	var symmetry = params["symmetry"];
-	var apgcode  = params["apgcode"];
-	var name     = params["name"];
+	var topology = params["topology"];
+	var toposym  = params["toposym" ];
+	var apgcode  = params["apgcode" ];
+	var name     = params["name"    ];
 
 	// if symmetry is not set, default to C1.
 	if(!symmetry)
@@ -1111,7 +1215,19 @@ function addNavLinks(params) {
 	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
 	navigationParagraph.appendChild(makeLink("/census/" + rule, rule));
 	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
-	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry, symmetry));
+
+	// there may or may not have been a topology.
+	// NOTE 1: there aren't any topology overview pages (yet?).
+	// NOTE 2: putting the topology before the symmetry is an arbitrary choice,
+	// they really are on equal footing.
+	if(topology) {
+//		navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + topology, topology));
+		navigationParagraph.appendChild(document.createTextNode(topology));
+		navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
+		navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + toposym, symmetry));
+	} else
+		navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry, symmetry));
+
 	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
 	navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/" + prefix, prefix));
 
@@ -1307,7 +1423,7 @@ function handleComments(params) {
 // identify objects from Jason Summers' jslife20121230 object collection.
 function identifyJslifeObject(params) {
 	
-	var prefix  = params["prefix"];
+	var prefix  = params["prefix" ];
 	var apgcode = params["apgcode"];
 
 	// create info paragraph
@@ -1434,7 +1550,7 @@ function identifyJslifeObject(params) {
 function addApgcodeSubheading(params) {
 
 	var apgcode = params["apgcode"];
-	var name    = params["name"];
+	var name    = params["name"   ];
 
 	// find title heading.
 	var titleHeading = findTitleHeading();

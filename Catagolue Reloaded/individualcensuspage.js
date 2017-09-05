@@ -27,7 +27,7 @@ function MAIN() {
 		addNavLinks           (params);
 		adjustTitle           (params);
 		adjustIntroParagraph  (params);
-		markOfficialSymmetries(params);
+//		markOfficialSymmetries(params);
 
 	}
 }
@@ -43,14 +43,28 @@ function reverse(str) {
 
 // add separators to a number. This is called "commify" for historical
 // reasons.
-// NOTE: there's probably a better way of doing this.
 function commify(number, separator) {
 
-	var reverseNumberStr = reverse(number.toString());
+	// try and parse number.
+	var matches = /^(\d+)(\.\d+)?$/.exec(number.toString());
 
+	// unparsable? Return as-is.
+	if(!matches)
+		return number;
+
+	var reverseNumberStr = "";
+	var decimalDigits    = "";
+
+	if(matches[2]) {
+		reverseNumberStr = reverse(matches[1].toString());
+		decimalDigits    = matches[2];
+	} else
+		reverseNumberStr = reverse(number.toString());
+	
+	// NOTE: there's probably a better way of doing this.
 	reverseNumberStr = reverseNumberStr.replace(/(\d{3})(?=\d)(?!\d*\.)/g, "$1" + reverse(separator));
 
-	return reverse(reverseNumberStr);
+	return reverse(reverseNumberStr) + decimalDigits;
 }
 
 /*********************************
@@ -133,9 +147,11 @@ function readParams() {
 	// hash of extracted page parameters
 	var params = new Object;
 
-	// we may not be able to extract/determine some of these, so just set them
-	// to null explicitely.
+	// we may not be able to extract/determine some (or all) of these, so 
+	// just set them to null explicitely.
+	params["topology"] = null;
 	params["symmetry"] = null;
+	params["toposym" ] = null;
 	params["prefix"  ] = null;
 	params["offset"  ] = null;
 
@@ -156,7 +172,24 @@ function readParams() {
 			var pieces = matches[1].split("/");
 
 			params["rule"    ] = pieces[0];
-			params["symmetry"] = pieces[1];
+
+			// the symmetry might include an optional topology, separated
+			// from the actual symmetry by a tilde; see the LifeWiki article
+			// at http://conwaylife.com/wiki/Catagolue_naming_conventions and
+			// http://conwaylife.com/forums/viewtopic.php?p=50407#p50407 for
+			// details.
+			if(pieces[1].indexOf("~") != -1) {
+				morePieces = pieces[1].split("~", 2);
+
+				params["topology"] = morePieces[0];
+				params["symmetry"] = morePieces[1];
+
+			} else
+				params["symmetry"] = pieces[1];
+
+			// either way, we save the unseparated topology~symmetry string as 
+			// well, since it may come in handy later.
+			params["toposym"] = pieces[1];
 
 			if(pieces.length > 2) {
 				var morePieces = pieces[2].split("?offset=");
@@ -252,6 +285,19 @@ function readParams() {
 
 	}
 
+	if(params["topology"]) {
+
+		// attempt to extract information on topology. So far, we only know
+		// how to handle toroidal universes, e.g. T256x256~D2_+1.
+		var matches = /^[Tt](\d+)x(\d+)$/.exec(params["topology"]);
+
+		if(matches) {
+			params["topology_shape"] = "T";
+			params["topology_bx"   ] = matches[1];
+			params["topology_by"   ] = matches[2];
+		}
+	}
+
 	// other parameters go here.
 
 	// return final collection of parameters.
@@ -301,6 +347,16 @@ function ruleSlashedUpper(params) {
 
 	else
 		formattedrule = params["rule"];
+
+	// we cheat a bit here and assume that the topology we got does indeed
+	// conform to the guidelines set forth in
+	// http://conwaylife.com/wiki/Catagolue_naming_conventions . If it does
+	// not, this will not produce a valid topology that tools such as Golly
+	// will understand, but there's little we can do about that.
+	if(params["topology"])
+		// don't you wish Javascript had an equivalent of Perl's tr/// 
+		// operator?
+		formattedrule += ":" + params["topology"].replace("x", ",").replace("f", "*").replace("p", "+");
 
 	return formattedrule;
 
@@ -355,7 +411,9 @@ function isTestSymmetry(symmetry) {
 function addNavLinks(params) {
 
 	var rule         = params["rule"        ];
+	var topology     = params["topology"    ];
 	var symmetry     = params["symmetry"    ];
+	var toposym      = params["toposym"     ];
 	var prefix       = params["prefix"      ];
 	var offset       = params["offset"      ];
 	var minimumIndex = params["minimumindex"];
@@ -382,10 +440,23 @@ function addNavLinks(params) {
 
 	// symmetry may be null if we're on the rule's "pick-a-symmetry" overview page.
 	if(symmetry) {
-		navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
-		navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry, symmetry));
 
-		// prefix may likewise be null.
+		navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
+
+		// if there was a symmetry, there might also have been a topology, but
+		// this isn't guaranteed.
+		// NOTE 1: there aren't any topology overview pages (yet?).
+		// NOTE 2: putting the topology before the symmetry is an arbitrary
+		// choice, they really are on equal footing.
+		if(topology) {
+//			navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + topology, topology));
+			navigationParagraph.appendChild(document.createTextNode(topology));
+			navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
+			navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + toposym, symmetry));
+		} else
+			navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry, symmetry));
+
+		// prefix may be null, just like symmetry.
 		if(prefix) {
 			navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
 			navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/" + prefix, prefix));
@@ -464,7 +535,7 @@ function adjustIntroParagraph(params) {
 		// 0, however.
 		if(numSoups) {
 			var introParagraphAmendment  = " (⌀ " 
-				+         (numObjects / numSoups).toFixed(2)                   + " objects/soup, "
+				+ commify((numObjects / numSoups).toFixed(2), numberSeparator) + " objects/soup, "
 				+ commify((numSoups   / numHauls).toFixed(0), numberSeparator) + " soups/haul)."
 
 			// remove trailing period...

@@ -42,9 +42,9 @@ function readParams() {
 		var params = new Object;
 
 		// parameters extracted from URL
-		params["rule"]     = matches[1];
+		params["rule"    ] = matches[1];
 		params["symmetry"] = matches[2];
-		params["prefix"]   = matches[3];
+		params["prefix"  ] = matches[3];
 
 		// other parameters
 		// (none yet)
@@ -64,7 +64,7 @@ function readParams() {
 // add symmetry to object links.
 function fixObjectLinks(params) {
 
-	var rule     = params["rule"];
+	var rule     = params["rule"    ];
 	var symmetry = params["symmetry"];
 
 	// regular expression to extract symmetries from sample soup links
