@@ -60,6 +60,28 @@ function closeSoupOverlay(evt) {
 
 }
 
+// convert a 16x16 (typically C1) sample soup to a 16x16 array. The soup
+// should be passed as an array of RLE lines, including precisely one header
+// line.
+function sampleSoupToArray(lines) {
+	var sampleSoupArray = new Array(16);
+
+	for(var lineNumber = 1; lineNumber < lines.length; lineNumber++)
+		sampleSoupArray[lineNumber - 1] = lines[lineNumber]
+			.replace(/[$!]/, "")
+				.split("")
+				.map(
+					function(character) {
+						if(character == "b")
+							return 0;
+						else if(character == "o")
+							return 1;
+					});
+
+	return sampleSoupArray;
+
+}
+
 function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 
 	// regex to extract soup seed etc. from soupURL
@@ -406,18 +428,7 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 						sampleSoup = lines[0].replace("x = 16", "x = 256").replace("y = 16", "y = 256") + "\n";
 
 						// convert sample soup into a 16x16 bit array.
-						var sampleSoupArray = new Array(16);
-						for(var lineNumber = 1; lineNumber < lines.length; lineNumber++)
-							sampleSoupArray[lineNumber - 1] = lines[lineNumber]
-																.replace(/[$!]/, "")
-																.split("")
-																.map(
-																	function(character) {
-																		if(character == "b")
-																			return 0;
-																		else if(character == "o")
-																			return 1;
-																	});
+						var sampleSoupArray = sampleSoupToArray(lines);
 
 						// we can now compute the actual Kronecker product.
 						for(var x = 0; x < 256; x++) {
@@ -550,6 +561,54 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 							}
 
 						}
+
+						break;
+
+					// handle Apple Bottom's diagonal skew-gutter test
+					// symmetry. This is essentially regular diagonal symmetry
+					// (D2_x), but with an empty diagonal lane of cells (the
+					// "gutter"), and with the second, mirrored half of the
+					// soup offset by one cell orthogonally ("skewed").
+					case "AB_D2_x_skewgutter_Test":
+
+						// split existing soup into lines. We mostly just do
+						// this so we don't have to recreate the rulestring
+						// for our new sample soup.
+						var lines = sampleSoup.split("\n");
+
+						// build a new soup, starting with the RLE header
+						sampleSoup = lines[0].replace("y = 16", "y = 17") + "\n";
+						
+						// convert sample soup into a 16x16 bit array.
+						var sampleSoupArray = sampleSoupToArray(lines);
+
+						// build new sample soup, line by line.
+						for(var y = 0; y < 17; y++) {
+
+							// we iterate through each line bit by bit.
+							for(var x = 0; x < 16; x++)
+
+								// NOTE: sampleSoupArray is an array of lines,
+								// and each line is an array of columns. As
+								// such, y comes before x here.
+								if((x > y) && sampleSoupArray[y][x])
+									// upper half.
+									sampleSoup += "o";
+								else if(((y - x) > 1) && sampleSoupArray[x][y - 1])
+									// lower, skew-mirrored half.
+									sampleSoup += "o";
+								else
+									sampleSoup += "b";
+						
+							// start a new RLE line if we're not already at the
+							// end of the entire soup.
+							if(y < 16)
+								sampleSoup += "$\n";
+
+						}
+
+						// append end-of-RLE marker.
+						sampleSoup += "!\n";
 
 						break;
 
