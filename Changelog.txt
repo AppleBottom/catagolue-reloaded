@@ -1,15 +1,18 @@
+Version 4.9: New: correct sample soups for the following symmetries:
+                 * AB_D2_x_skewgutter_Test
+
 Version 4.8: New: correct sample soups for the following symmetries:
                  * MB_C1_2x2_32x32_Test (=AB_C1_2x2_32x32_Test)
              Improved: also use sample soup overlay on haul pages.
              Improved: sort "inflated" symmetries next to their "base"
                symmetries.
-	     Improved: keep overly long symmetries from breaking the layout on
-	       object pages.
-	     Improved: keep long roots from breaking haul overview pages.
+             Improved: keep overly long symmetries from breaking the layout on
+               object pages.
+             Improved: keep long roots from breaking haul overview pages.
              Removed: don't display "official" symmetries in bold on rule
                overview pages anymore (this was implemented server-side).
              Bugfix: avoid spurious NaN's in AB_*_Test sample soups.
-	     Internal: begin preparing for non-standard universe topologies.
+             Internal: begin preparing for non-standard universe topologies.
 
 Version 4.7: New: correct sample soups for the following symmetries:
                  * 32x32

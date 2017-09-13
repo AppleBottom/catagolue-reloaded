@@ -25,6 +25,7 @@ Right now, the following changes are implemented:
 	 * AB_sha512_16x32_Test
 	 * AB_sha512_20x20_Test
 	 * AB_C1_2x2_32x32_Test
+	 * AB_D2_x_skewgutter_Test
 	 * 1x256X2
 	 * 1x256X2+1
 	 * 32x32 (wwei23)
