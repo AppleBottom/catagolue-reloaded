@@ -1,3 +1,7 @@
+Version 5.0: New: encode objects in SOF format.
+             New: one-click search by SOF on pentadecathlon.com.
+             Changed: escape name/apgcode for one-click searches.
+
 Version 4.9: New: correct sample soups for the following symmetries:
                  * AB_D2_x_skewgutter_Test
 

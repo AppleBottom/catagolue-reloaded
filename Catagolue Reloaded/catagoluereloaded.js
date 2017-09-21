@@ -21,12 +21,15 @@ var commentExpandedSymbol  = "▼ " // U+25BC BLACK DOWN-POINTING TRIANGLE
 // number of sample soups to group in a chunk.
 var sampleSoupChunkSize = 5;
 
-// list of search providers to link to on object pages.
-var searchProviders = new Object;
+// lists of search providers to link to on object pages.
+var searchProviders    = new Object;
+var searchProvidersSOF = new Object;
 
-searchProviders["LifeWiki"]          = "http://conwaylife.com/w/index.php?title=Special%3ASearch&profile=all&fulltext=Search&search=";
+searchProviders["LifeWiki"         ] = "http://conwaylife.com/w/index.php?title=Special%3ASearch&profile=all&fulltext=Search&search=";
 searchProviders["ConwayLife forums"] = "http://conwaylife.com/forums/search.php?terms=all&author=&fid[]=3&fid[]=4&fid[]=5&fid[]=7&fid[]=11&fid[]=9&fid[]=2&fid[]=14&fid[]=12&sc=1&sf=all&sr=posts&sk=t&sd=d&st=0&ch=300&t=0&submit=Search&keywords=";
-searchProviders["Google"  ]          = "https://encrypted.google.com/search?q=";
+searchProviders["Google"           ] = "https://encrypted.google.com/search?q=";
+
+searchProvidersSOF["Pentadecathlon"] = "http://www.pentadecathlon.com/.sof?find=";
 
 var catagolueBaseUrl = "https://catagolue.appspot.com/";
 
@@ -53,7 +56,7 @@ function MAIN() {
 		// do our work.
 		addNavLinks         (params);
 		handleSampleSoups   (params);
-		objectToRLE         (params);
+		objectToRLEandSOF   (params);
 		addImgLink          (params);
 		handleComments      (params);
 
@@ -403,6 +406,27 @@ function readParams() {
 	else
 		params["name"] = "";
 
+	// we need the object's SOF representation in several places, so we
+	// compute it here in this function. In order to compute it, we also need
+	// its representation as a pattern (i.e. array), and since we need that
+	// again later to compute the object's RLE representation, we also save
+	// it in the params.
+	//
+	// We'll want the SOF representation both with and without the pattern's
+	// name/Catagolue URL; in order to avoid generating it twice we simply
+	// generate it without first, then augment the representation obtained
+	// with the extra info.
+	//
+	// We only do all this if we a) have an object to work with, and b) it's a
+	// still life (xs), oscillator (xp) or spaceship (xq).
+	if(params["object"])
+		if(/^x[pqs]/.test(params["prefix"])) {
+			params["pattern"] = apgcodeToPattern(params["states"], params["object"], params["rule"]);
+
+			params["rawSOF"]  = patternToSOF    (params, params["pattern"]);
+			params["SOF"]     = augmentSOF      (params, params["rawSOF"] );
+		}
+
 	// return final collection of parameters.
 	return params;
 
@@ -582,10 +606,7 @@ function apgcodeDecodeWXY(code) {
 }
 
 // Convert an object (represented by its apgcode, sans prefix) to a pattern.
-function apgcodeToPattern(params, object, rule) {
-
-	// extract values
-	var states = params["states"];
+function apgcodeToPattern(states, object, rule) {
 
 	// create an array to hold the pattern.
 	var pattern = emptyUniverse(universeSize, universeSize);
@@ -829,6 +850,166 @@ function patternToRLE(params, patternObject) {
 
 }
 
+// convert a pattern to an SOF string.
+//
+// SOF is Heinrich Koenig's Small Object Format, used to represent objects on
+// pentadecathlon.com. For reference, see:
+//    * http://conwaylife.com/wiki/SOF
+//    * http://www.pentadecathlon.com/objects/definitions/definitions.php
+//
+// NOTE: no attempt is currently made to generate the *canonical* SOF
+// representation of an object. Doing so would require significantly more
+// machinery, since we'd have to actually run patterns (oscillators, 
+// spaceships etc.) to identify the generation/orientation to encode.
+//
+// NOTE 2: Pentadecathlon is smart enough, however, to recognize "alternate"
+// SOF strings for still lifes at the very least, so the above isn't too much
+// of an issue in practice.
+function patternToSOF(params, patternObject) {
+	
+	// extract values
+	var states    = params["states"];
+
+	// SOF can only encode objects in two-state rules.
+	if(states > 2)
+		return null;
+
+	// extract values
+	var pattern   = patternObject["pattern"  ];
+	var bx        = patternObject["bx"       ];
+	var by        = patternObject["by"       ];
+	var oversized = patternObject["oversized"];
+
+	// SOF string
+	var SOF = "";
+
+	// current number of empty lines.
+	var emptyLineCount = 0;
+
+	// read pattern linewise
+	for(var i = 0; i <= by; i++) {
+
+		// state of the ongoing run. We always start with an ON run; if the
+		// pattern starts with an OFF cell, this run gets flushed immediately
+		// and written to the SOF string as a 0 ("zero ON cells"), which is
+		// exactly what the SOF format requires.
+		var runCount     = 0;
+		var currentState = 1;
+
+		// current SOF line. We also track whether the line's empty, since we
+		// will want to merge empty lines eventually and since currentLine
+		// will not necessarily be the empty string even if no live cells are
+		// encountered. (79 dead cells, for instance, would yield "~01".)
+		var currentLine           = "";
+		var currentLineIsNotEmpty = false;
+
+		for(var j = 0; j <= bx; j++) {
+
+			// current cell we're looking at
+			var cell = pattern[j][i];
+
+			// keep track of whether a live cell was seen on this line. Note
+			// that dead cells are undef, and if we don't take care to catch
+			// this currentLineIsNotEmpty might become undefined, too.
+			currentLineIsNotEmpty = currentLineIsNotEmpty || (typeof cell !== "undefined")
+
+			// did we change state?
+			if(cell != currentState) {
+
+				// if we have an ongoing run, wrap that up. Runs of length
+				// n=0,..,78 are represented by the ASCII characters n+0x30
+				// in SOF. Note that this encodes runs of 0,..,9 using the
+				// characters "0",..,"9". The maximum of 78 was probably
+				// chosen because 79 would correspond to ASCII 127, which is
+				// a control character. 
+				currentLine += String.fromCharCode(runCount + 48);
+
+				// begin a new run
+				currentState = cell;
+				runCount     = 1;
+
+			} else if(runCount == 78) {
+
+				// SOF does not allow runs longer than 78 cells; we therefore
+				// flush the current run (note that 78 corresponds to the tilde
+				// character, insert an empty run of cells in the opposing 
+				// state, and start a new run.
+
+				currentLine += "~0";
+				runCount     = 1;
+
+			} else
+				// continue ongoing run
+				runCount++;
+
+		}
+
+		// wrap up current run.
+		currentLine += String.fromCharCode(runCount + 48);
+
+		// if the current line is empty, we just add to the running total of
+		// empty lines.
+		if(!currentLineIsNotEmpty)
+			emptyLineCount++;
+
+		else {
+			// current line was not empty. We start by flushing out any empty
+			// lines we may have accumulated. Note that it is theoretically
+			// possible (although rather unlikely in practice) that we have
+			// 78 or more empty lines queued up, so the following while loop
+			// is indeed necessary.
+			while(emptyLineCount >= 78) {
+				SOF += "+~";
+				emptyLineCount -= 78;
+			}
+
+			// emptyLineCount is now guaranteed to be at most 77. Note that
+			// the number of linebreaks we have to insert is one larger than
+			// emptyLineCount, as there is a linebreak both before *and* after
+			// the first empty line.
+			if(emptyLineCount)
+				SOF += "+" + String.fromCharCode(emptyLineCount + 1 + 48);
+			else if(i != 0)
+				// if there are no empty lines left, all we have is one plain
+				// old regular linebreak... so long as we're not on the very
+				// first line, which obviously does not have a linebreak in
+				// front of it.
+				SOF += "-";
+
+			// with all the linebreaks in place we can finally add the actual
+			// current SOF line.
+			SOF += currentLine;
+
+			// we musn't forget to reset this, either.
+			emptyLineCount = 0;
+			
+		}
+
+	}
+
+	// wrap up SOF with an end-of-object marker.
+	SOF += ".";
+
+	return SOF;
+}
+
+// add name and comment to a SOF string.
+function augmentSOF(params, SOF) {
+	
+	// extract values
+	var name      = params["name"  ];
+
+	// add pattern name, if known.
+	if(name)
+		SOF += " (" + ucFirst(name) + ")";
+
+	// add a link to the object's Catagolue page as a comment.
+	SOF += " !" + canonicalObjectUrl(params) + "\n";
+
+	return SOF;
+
+}
+
 /***********************
  * Major functionality *
  ***********************/
@@ -1046,12 +1227,14 @@ function handleSampleSoups(params) {
   
 }
 
-// add a textarea with the object in RLE format.
-function objectToRLE(params) {
+// add textarea with the object in RLE/SOF format.
+function objectToRLEandSOF(params) {
 
-	var prefix = params["prefix"];
-	var object = params["object"];
-	var rule   = params["rule"  ];
+	var prefix  = params["prefix" ];
+	var object  = params["object" ];
+	var rule    = params["rule"   ];
+	var pattern = params["pattern"];
+	var SOF     = params["SOF"    ];
 
 	// regex to test prefix
 	var prefixRegex = /^x[pqs]/;
@@ -1064,44 +1247,70 @@ function objectToRLE(params) {
 	if(!prefixRegex.test(prefix))
 		return;
 
-	// convert object to pattern, and pattern to RLE.
-	var pattern = apgcodeToPattern(params, object, rule);
+	// convert pattern to SOF.
 	var RLE     = patternToRLE    (params, pattern);
 
 	// find the "Comments" H2
 	var commentsH2 = findCommentsH2();
 
-	// create a new heading for the RLE code.
+	// create new headings for the RLE/SOF encodings.
 	var RLEHeading = document.createElement("h3");
+	var SOFHeading = document.createElement("h3");
 	RLEHeading.textContent = "RLE";
+	SOFHeading.textContent = "SOF";
 
-	// create "select all" link for RLE code.
+	// create "select all" link for RLE/SOF encodings.
 	var RLESelectAll     = document.createElement("p");
 	var RLESelectAllLink = document.createElement("a");
+	var SOFSelectAll     = document.createElement("p");
+	var SOFSelectAllLink = document.createElement("a");
 
 	RLESelectAll.style.marginTop    = 0;
 	RLESelectAll.style.marginBottom = "0.5em";
 	RLESelectAll.style.fontFamily   = "monospace";
 
+	SOFSelectAll.style.marginTop    = 0;
+	SOFSelectAll.style.marginBottom = "0.5em";
+	SOFSelectAll.style.fontFamily   = "monospace";
+
 	RLESelectAllLink.href        = "#";
 	RLESelectAllLink.textContent = "Select All";
 	RLESelectAllLink.setAttribute("onclick", 'document.getElementById("RLETextArea").select(); return false');
 
-	RLESelectAll.appendChild(RLESelectAllLink);
+	SOFSelectAllLink.href        = "#";
+	SOFSelectAllLink.textContent = "Select All";
+	SOFSelectAllLink.setAttribute("onclick", 'document.getElementById("SOFTextArea").select(); return false');
 
-	// create a textarea for the RLE code.
+	RLESelectAll.appendChild(RLESelectAllLink);
+	SOFSelectAll.appendChild(SOFSelectAllLink);
+
+	// create textareas for the RLE/SOF encodings.
 	var RLETextArea = document.createElement("textarea");
+	var SOFTextArea = document.createElement("textarea");
+
 	RLETextArea.id          = "RLETextArea";
 	RLETextArea.style.width = "100%";
 	RLETextArea.rows        = "10";
 	RLETextArea.readOnly    = true;
 	RLETextArea.textContent = RLE;
 
+	SOFTextArea.id          = "SOFTextArea";
+	SOFTextArea.style.width = "100%";
+	SOFTextArea.rows        = "2";
+	SOFTextArea.readOnly    = true;
+	SOFTextArea.textContent = SOF;
+
 	// insert the new nodes.
 	commentsH2.parentNode.insertBefore(RLEHeading,   commentsH2);
 	commentsH2.parentNode.insertBefore(RLESelectAll, commentsH2);
 	commentsH2.parentNode.insertBefore(RLETextArea,  commentsH2);
 
+	// SOF may be null if the object could not be represented in SOF format.
+	if(SOF) {
+		commentsH2.parentNode.insertBefore(SOFHeading,   commentsH2);
+		commentsH2.parentNode.insertBefore(SOFSelectAll, commentsH2);
+		commentsH2.parentNode.insertBefore(SOFTextArea,  commentsH2);
+	}
 }
 
 // add a link to the SVG image of an object.
@@ -1172,6 +1381,7 @@ function addNavLinks(params) {
 	var toposym  = params["toposym" ];
 	var apgcode  = params["apgcode" ];
 	var name     = params["name"    ];
+	var SOF      = params["rawSOF"  ];
 
 	// if symmetry is not set, default to C1.
 	if(!symmetry)
@@ -1234,7 +1444,7 @@ function addNavLinks(params) {
 	// add search links to search paragraph
 	searchParagraph.appendChild(document.createTextNode("Search by apgcode: "));
 	for (var searchProvider in searchProviders) {
-		searchParagraph.appendChild(makeLink(searchProviders[searchProvider] + apgcode, searchProvider));
+		searchParagraph.appendChild(makeLink(searchProviders[searchProvider] + encodeURIComponent(apgcode), searchProvider));
 		searchParagraph.appendChild(document.createTextNode(genericSeparator));
 	}
 
@@ -1247,7 +1457,7 @@ function addNavLinks(params) {
 		searchParagraph.appendChild(document.createTextNode("Search by name: "));
 
 		for (var searchProvider in searchProviders) {
-			searchParagraph.appendChild(makeLink(searchProviders[searchProvider] + name, searchProvider));
+			searchParagraph.appendChild(makeLink(searchProviders[searchProvider] + encodeURIComponent(name), searchProvider));
 			searchParagraph.appendChild(document.createTextNode(genericSeparator));
 		}
 
@@ -1255,6 +1465,19 @@ function addNavLinks(params) {
 		searchParagraph.removeChild(searchParagraph.lastChild);
 	}
 
+	// if we have a SOF representation, allow searching by that.
+	if(SOF) {
+		searchParagraph.appendChild(document.createElement("br"));
+		searchParagraph.appendChild(document.createTextNode("Search by SOF: "));
+
+		for (var searchProvider in searchProvidersSOF) {
+			searchParagraph.appendChild(makeLink(searchProvidersSOF[searchProvider] + encodeURIComponent(SOF), searchProvider));
+			searchParagraph.appendChild(document.createTextNode(genericSeparator));
+		}
+
+		// we added an extra separator after the last search link; remove that.
+		searchParagraph.removeChild(searchParagraph.lastChild);
+	}
 
 }
 

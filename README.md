@@ -7,16 +7,17 @@ Right now, the following changes are implemented:
    a. Organize sample soup links by soup symmetry.
    b. Display sample soups in a pop-up for easy copying/pasting.
    c. Add links to the hauls containing the sample soups.
-   d. Encode object in RLE form for easy copying/pasting.
-   e. Add breadcrumbs navigation links.
-   f. Add LifeWiki/Life forum/Google search links.
-   g. Word-wrap long apgcodes.
-   h. Add links to SVG images.
-   i. Allow collapsing/expanding comments.
-   j. Always display apgcode, even for named objects.
-   k. Identify (some) objects appearing in Jason Summers' jslife-20121230 
+   d. Encode object in RLE format for easy copying/pasting.
+   e. Encode object in SOF format for easy searching on Pentadecathlon.com.
+   f. Add breadcrumbs navigation links.
+   g. Add LifeWiki/Life forum/Google search links.
+   h. Word-wrap long apgcodes.
+   i. Add links to SVG images.
+   j. Allow collapsing/expanding comments.
+   k. Always display apgcode, even for named objects.
+   l. Identify (some) objects appearing in Jason Summers' jslife-20121230 
       collection.
-   l. Generate correct soups for the following symmetries not supported by the
+   m. Generate correct soups for the following symmetries not supported by the
       server:
          * AB_1x256_Test
          * AB_2x128_Test
@@ -30,7 +31,7 @@ Right now, the following changes are implemented:
 	 * 1x256X2+1
 	 * 32x32 (wwei23)
 	 * MB_C1_2x2_32x32_Test
-   m. Add RLE comments to sample soups.
+   n. Add RLE comments to sample soups.
 2. On object category pages:
    a. Word-wrap long apgcodes.^
 3. On the main census overview page:
