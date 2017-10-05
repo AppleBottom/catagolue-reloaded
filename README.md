@@ -31,9 +31,12 @@ Right now, the following changes are implemented:
 	 * 1x256X2+1
 	 * 32x32 (wwei23)
 	 * MB_C1_2x2_32x32_Test
+	 * MB_bad8x8_test
+	 * MB_dense1x8_test
+	 * MB_dense2x8_test
    n. Add RLE comments to sample soups.
 2. On object category pages:
-   a. Word-wrap long apgcodes.^
+   a. Word-wrap long apgcodes.
 3. On the main census overview page:
    a. Keep overly long rulestrings from breaking page layout.
    b. Convert unordered lists to ordered.
