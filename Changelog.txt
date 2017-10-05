@@ -1,3 +1,8 @@
+Version 5.1: New: correct sample soups for the following symmetries:
+                 * MB_bad8x8_test
+                 * MB_dense1x8_test
+                 * MB_dense2x8_test
+
 Version 5.0: New: encode objects in SOF format.
              New: one-click search by SOF on pentadecathlon.com.
              Changed: escape name/apgcode for one-click searches.
