@@ -421,10 +421,9 @@ function readParams() {
 	// still life (xs), oscillator (xp) or spaceship (xq).
 	if(params["object"])
 		if(/^x[pqs]/.test(params["prefix"])) {
-			params["pattern"] = apgcodeToPattern(params["states"], params["object"], params["rule"]);
-
-			params["rawSOF"]  = patternToSOF    (params, params["pattern"]);
-			params["SOF"]     = augmentSOF      (params, params["rawSOF"] );
+			params["pattern"] = apgcodeToPattern(params);
+			params["rawSOF" ] = patternToSOF    (params);
+			params["SOF"    ] = augmentSOF      (params);
 		}
 
 	// return final collection of parameters.
@@ -606,7 +605,12 @@ function apgcodeDecodeWXY(code) {
 }
 
 // Convert an object (represented by its apgcode, sans prefix) to a pattern.
-function apgcodeToPattern(states, object, rule) {
+function apgcodeToPattern(params) {
+
+	// extract parameters
+	var states = params["states"];
+	var object = params["object"];
+	var rule   = params["rule"  ];
 
 	// create an array to hold the pattern.
 	var pattern = emptyUniverse(universeSize, universeSize);
@@ -865,10 +869,11 @@ function patternToRLE(params, patternObject) {
 // NOTE 2: Pentadecathlon is smart enough, however, to recognize "alternate"
 // SOF strings for still lifes at the very least, so the above isn't too much
 // of an issue in practice.
-function patternToSOF(params, patternObject) {
+function patternToSOF(params) {
 	
 	// extract values
-	var states    = params["states"];
+	var states        = params["states" ];
+	var patternObject = params["pattern"];
 
 	// SOF can only encode objects in two-state rules.
 	if(states > 2)
@@ -994,10 +999,11 @@ function patternToSOF(params, patternObject) {
 }
 
 // add name and comment to a SOF string.
-function augmentSOF(params, SOF) {
+function augmentSOF(params) {
 	
 	// extract values
 	var name      = params["name"  ];
+	var SOF       = params["rawSOF"];
 
 	// add pattern name, if known.
 	if(name)
@@ -1770,8 +1776,10 @@ function identifyJslifeObject(params) {
 
 }
 
+// add a sub-heading showing an object's apgcode to named objects.
 function addApgcodeSubheading(params) {
 
+	// extract parameters.
 	var apgcode = params["apgcode"];
 	var name    = params["name"   ];
 
