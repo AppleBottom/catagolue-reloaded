@@ -612,6 +612,119 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 
 						break;
 
+					// handle MB's test symmetries: MB_bad8x8_test, 
+					// MB_dense1x8_test and MB_dense2x8_test.
+					// 
+					// We're actually just recreating the sample soup from 
+					// scratch here, it's easier that way.
+					//
+					// See:
+					// http://conwaylife.com/forums/viewtopic.php?p=51601#p51601
+					// http://conwaylife.com/forums/viewtopic.php?p=51608#p51608
+					//
+					// FIXME: there is some overlap with the code that handles
+					// AB's SHA-512-based symmetries, above. Merge these.
+
+					case "MB_bad8x8_test":
+
+						var xLineDivisor    = 1;
+						var xLineMultiplier = 8;
+						var yLineDivisor    = 4;
+						var soupBx          = 8;
+						var soupBy          = 8;
+
+						// fall through to next case
+					case "MB_dense1x8_test":
+
+						if(!xLineDivisor) {
+							xLineDivisor    = 1;
+							xLineMultiplier = 2;
+							yLineDivisor    = 32;
+							soupBx          = 8;
+							soupBy          = 1;
+						}
+
+						// fall through to next case
+					case "MB_dense2x8_test":
+
+						if(!xLineDivisor) {
+							xLineDivisor    = 1;
+							xLineMultiplier = 2;
+							yLineDivisor    = 16;
+							soupBx          = 8;
+							soupBy          = 2;
+						}
+
+						// generate a new digest to convert to a soup.
+						var hashDigest = rstr_sha256(seed + soupNumberInHaul);
+
+						// create an empty sample soup to work with. 
+						var sampleSoupLines = new Array(soupBy);
+						for(var y = 0; y < soupBy; y++) {
+							sampleSoupLines[y] = "b".repeat(soupBx);
+						}
+
+						// FIXME: we're generating RLE lines on the fly here,
+						// rather than creating an array first and then
+						// converting that to RLE in a second step. Doing
+						// that might be faster (fewer string operations),
+						// so consider doing that.
+
+						// currentHashCharNum corresponds to j in apgsearch 
+						// 1.1's hashsoup() function.
+						for(var currentHashCharNum = 0; currentHashCharNum < 32; currentHashCharNum++) {
+
+							// currentHashChar corresponds to t in the same function.
+							var currentHashChar = hashDigest[currentHashCharNum].charCodeAt(0);
+
+							// currentBit corresponds to k in the same function.
+							for(var currentBit = 0; currentBit < 8; currentBit++) {
+
+								// bytes are in MSBF bit order, but we want
+								// LSBF.
+								if(currentHashChar & (1 << (7 - currentBit))) {
+
+									var x = currentBit + xLineMultiplier * (currentHashCharNum % xLineDivisor);
+					                var y = Math.floor(currentHashCharNum / yLineDivisor);
+
+									// patch in a live cell ("o") where appropriate.
+									sampleSoupLines[y] =
+										sampleSoupLines[y].substr(0, x) +
+										"o" +
+										sampleSoupLines[y].substr(x + 1);
+
+								}
+
+							}
+
+						}
+
+						// we've got our RLE lines, so we just need to append
+						// the header. To do this, we just reuse the existing
+						// sample soup header.
+
+						// split soup into lines
+						var lines = sampleSoup.split("\n");
+
+						// build a new soup, starting with the RLE header
+						sampleSoup = lines[0].replace("x = 16", "x = " + soupBx).replace("y = 16", "y = " + soupBy) + "\n";
+
+						// append our collected lines.
+						for(var y = 0; y < soupBy; y++) {
+							sampleSoup += sampleSoupLines[y];
+
+							// append end-of-line marker, except for on the
+							// last line
+							if(y < (soupBy - 1))
+								sampleSoup += "$\n";
+
+						}
+
+						// append end-of-pattern marker
+						sampleSoup += "!\n";
+
+						break;
+					
 					// handle wwei23's 32x32 symmetry. This is just four
 					// copies of the same C1 soup glued together. See:
 					// http://www.conwaylife.com/forums/viewtopic.php?p=45555#p45555
