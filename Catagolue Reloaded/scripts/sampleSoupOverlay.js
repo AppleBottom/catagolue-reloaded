@@ -459,6 +459,7 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 						var numHashChars = 64;
 						var soupBx       = 16;
 						var soupBy       = 32;
+						var bitsAtATime  = 1;
 
 						// fall through to next case
 					case "AB_sha512_20x20_Test":
@@ -467,8 +468,20 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 						// corresponding to 50 characters (bytes).
 						if(!numHashChars) {
 							numHashChars = 50;
-							soupBx = 20;
-							soupBy = 20;
+							soupBx       = 20;
+							soupBy       = 20;
+							bitsAtATime  = 1;
+						}
+
+						// fall through to next case
+					case "AB_sha512_25p_Test":
+					case "AB_sha512_75p_Test":
+
+						if(!numHashChars) {
+							numHashChars = 64;
+							soupBx       = 16;
+							soupBy       = 16;
+							bitsAtATime  = 2;
 						}
 
 						// NOTE: the actual common code for generating soups
@@ -488,22 +501,56 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 						var currentRLELineLength = 0;
 
 						// draw as many characters as we need from the digest.
-						for(var currentHashCharNum = 0; currentHashCharNum < numHashChars; currentHashCharNum++) {
-							var currentHashChar = hashDigest[currentHashCharNum].charCodeAt(0);
+						for(var currentHashCharNum = 0; currentHashCharNum < numHashChars; currentHashCharNum += bitsAtATime) {
 
-							for(var currentBit = 0; currentBit < 8; currentBit++) {
+							// assemble the current hash character... which 
+							// may in fact be more than one (8-bit) character.
+							//
+							// And if anyone can think of a better name than
+							// "currentHashCharNumInChunk", please, let me
+							// know.
+							var currentHashChar = 0;
+							for(var currentHashCharNumInChunk = 0; currentHashCharNumInChunk < bitsAtATime; currentHashCharNumInChunk++)
+								currentHashChar = (currentHashChar << 8) + hashDigest[currentHashCharNum + currentHashCharNumInChunk].charCodeAt(0);
 
-								// bytes are in MSBF bit order, but we want
-								// LSBF.
-								if(currentHashChar & (1 << (7 - currentBit)))
-									sampleSoup += "o";
-								else
-									sampleSoup += "b";
+							// "currentBit" is really a bit (har har) of a 
+							// misnomer for the 25p and 75p test symmetries
+							// where we're considering two bits at a time for
+							// each cell.
+							for(var currentBit = 0; currentBit < 8 * bitsAtATime; currentBit += bitsAtATime) {
+
+								var liveCell = 0;
+
+								// For the two-bit-at-a-time symmetries, we 
+								// have to jump through some extra hoops to
+								// test whether a cell should be live; for the
+								// one-bit-at-a-time symmetries, it's easier.
+								//
+								// NOTE: bytes are in MSBF bit order, but we 
+								// want LSBF.
+								// 
+								// NOTE 2: note to self, don't forget the
+								// braces when you're nesting if statements,
+								// or your else branches will apply to the
+								// wrong if statement. *headdesk*
+								if(symmetry == "AB_sha512_25p_Test") {
+									if((currentHashChar & (1 << (14 - currentBit))) && (currentHashChar & (1 << (15 - currentBit))))
+										liveCell = 1;
+
+								} else if(symmetry == "AB_sha512_75p_Test") {
+									if((currentHashChar & (1 << (14 - currentBit))) || (currentHashChar & (1 << (15 - currentBit)))) {
+										liveCell = 1;
+									}
+
+								} else if(currentHashChar & (1 << (7 - currentBit)))
+									liveCell = 1;
+
+								sampleSoup += (liveCell ? "o" : "b");
 
 								// start a new line if necessary -- but only 
 								// if we're not already at the end of the soup
 								// anyway.
-								if((++currentRLELineLength == soupBx) && (currentHashCharNum < (numHashChars - 1))) {
+								if((++currentRLELineLength == soupBx) && (currentHashCharNum < (numHashChars - bitsAtATime))) {
 									sampleSoup += "$\n";
 									currentRLELineLength = 0;
 								}
@@ -623,7 +670,7 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 					// http://conwaylife.com/forums/viewtopic.php?p=51608#p51608
 					//
 					// FIXME: there is some overlap with the code that handles
-					// AB's SHA-512-based symmetries, above. Merge these.
+					// AB's SHA-512-based symmetries, above. Merge these?
 
 					case "MB_bad8x8_test":
 
