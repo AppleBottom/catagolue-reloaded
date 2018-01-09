@@ -25,6 +25,8 @@ Right now, the following changes are implemented:
          * AB_256x256_Test
 	 * AB_sha512_16x32_Test
 	 * AB_sha512_20x20_Test
+	 * AB_sha512_25p_Test
+	 * AB_sha512_75p_Test
 	 * AB_C1_2x2_32x32_Test
 	 * AB_D2_x_skewgutter_Test
 	 * 1x256X2
@@ -37,6 +39,7 @@ Right now, the following changes are implemented:
    n. Add RLE comments to sample soups.
 2. On object category pages:
    a. Word-wrap long apgcodes.
+   b. Align numbers and add separators.
 3. On the main census overview page:
    a. Keep overly long rulestrings from breaking page layout.
    b. Convert unordered lists to ordered.
@@ -44,6 +47,7 @@ Right now, the following changes are implemented:
    a. Word-wrap long apgcodes.
    b. Display sample soups in a pop-up for easy copying/pasting.
    c. Word-wrap long roots.
+   d. Align numbers and add separators.
 5. On individual census pages:
    a. Add breadcrumbs navigation links.
    b. Indicate rule/symmetry/prefix/offset in page title/heading.
