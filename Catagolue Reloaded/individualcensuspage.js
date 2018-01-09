@@ -9,12 +9,6 @@
 
 // "On second thought, let's not hack in Javascript. 'tis a silly language."
 
-// separator used for breadcrumb navigation links
-var breadcrumbSeparator = " » "; // Alternatively: > or ›
-
-// separator used for numbers.
-var numberSeparator = "\u2009"; // U+2009 THIN SPACE, aka &thinsp;
-
 // MAIN function.
 function MAIN() {
 
@@ -25,6 +19,7 @@ function MAIN() {
 
 		// do our work.
 		addNavLinks           (params);
+		commifyNumbers        (params);
 		adjustTitle           (params);
 		adjustIntroParagraph  (params);
 //		markOfficialSymmetries(params);
@@ -32,111 +27,9 @@ function MAIN() {
 	}
 }
 
-/****************************
- * General helper functions *
- ****************************/
-
-// reverse a string.
-function reverse(str) {
-	return str.split('').reverse().join('');
-}
-
-// add separators to a number. This is called "commify" for historical
-// reasons.
-function commify(number, separator) {
-
-	// try and parse number.
-	var matches = /^(\d+)(\.\d+)?$/.exec(number.toString());
-
-	// unparsable? Return as-is.
-	if(!matches)
-		return number;
-
-	var reverseNumberStr = "";
-	var decimalDigits    = "";
-
-	if(matches[2]) {
-		reverseNumberStr = reverse(matches[1].toString());
-		decimalDigits    = matches[2];
-	} else
-		reverseNumberStr = reverse(number.toString());
-	
-	// NOTE: there's probably a better way of doing this.
-	reverseNumberStr = reverseNumberStr.replace(/(\d{3})(?=\d)(?!\d*\.)/g, "$1" + reverse(separator));
-
-	return reverse(reverseNumberStr) + decimalDigits;
-}
-
 /*********************************
  * HTML-related helper functions *
  *********************************/
-
-// find the heading containing the object's code
-function findTitleHeading() {
-
-	// find the content div; the heading is (currently) its first H2 child.
-	// note that we really need to search for a H2 here; other functions may
-	// insert elements into the content div before it, notably the breadcrumbs
-	// navigation.
-	var content = document.getElementById("content");
-	if(content)
-		for(var candidate = content.firstElementChild; candidate; candidate = candidate.nextElementSibling) {
-			if(candidate.tagName == "H2")
-				return candidate;
-		}
-
-	// this shouldn't happen unless the page layout changes.
-	return null;
-
-}
-
-// create a new element based on an existing one (there is no built-in way to 
-// simply "convert" an element to a new type).
-// Code: "James", https://stackoverflow.com/a/2207198
-function makeNewElementFromElement(tag, elem) {
-
-    var newElem = document.createElement(tag);
-	var attr    = elem.attributes;
-	var attrLen = attr.length;
-
-    // Copy children 
-    elem = elem.cloneNode(true);
-    while (elem.firstChild) {
-        newElem.appendChild(elem.firstChild);
-    }
-
-    // Copy DOM properties
-    for (var i in elem) {
-        try {
-            var prop = elem[i];
-            if (prop && i !== 'outerHTML' && (typeof prop === 'string' || typeof prop === 'number')) {
-                newElem[i] = elem[i];
-            }
-        } catch(e) { /* some props throw getter errors */ }
-    }
-
-    // Copy attributes
-    for (var i = 0; i < attrLen; i++) {
-        newElem.setAttribute(attr[i].nodeName, attr[i].nodeValue);
-    }
-
-    // Copy inline CSS
-    newElem.style.cssText = elem.style.cssText;
-
-    return newElem;
-}
-
-// adjust an element's width
-function adjustElementWidth(element) {
-
-	// get element's computed style
-	var elementStyle = window.getComputedStyle(element);
-
-	// set minimum width and unset width
-	element.style.minWidth = elementStyle.width;
-	element.style.width    = "unset";
-
-}
 
 // read and return apgcode, rulestring etc.
 function readParams() {
@@ -305,103 +198,6 @@ function readParams() {
 
 }
 
-// create and return a hyperlink
-function makeLink(linkTarget, linkText) {
-
-	// create a new "a" element
-	var link = document.createElement("a");
-
-	link.href        = linkTarget;
-	link.textContent = linkText;
-
-	return link;
-
-}
-
-/****************************************
- * General GoL-related helper functions *
- ****************************************/
-
-// convert a rulestring to slashed uppercase notation, e.g. "B3/S23" instead
-// of "b3s23" etc. Generations rules such as g3b3s23 are converted to e.g.
-// 23/3/3, and Larger than Life rules such as r7b65t95s65t114 become e.g.
-// R7,C0,M1,S65..114,B65..95,NM. Note that named rules (e.g. "tlife") are left
-// alone, as are neighborhood conditions in non-totalistic rules in Hensel
-// notation.
-function ruleSlashedUpper(params) {
-
-	var formattedrule;
-
-	if(params["generations"])
-		formattedrule = params["s"] + "/" + params["b"] + "/" + params["states"];
-
-	else if(params["largerthanlife"])
-		formattedrule = "R" + params["range"] + ","
-			              + "C0,M1,"
-			              + "S" + params["smin"] + ".." + params["smax"] + ","
-			              + "B" + params["bmin"] + ".." + params["bmax"] + ","
-			              + "NM";
-
-	else if(params["nontotalistic"] || params["outertotalistic"])
-		formattedrule = "B" + params["b"] + "/S" + params["s"];
-
-	else
-		formattedrule = params["rule"];
-
-	// we cheat a bit here and assume that the topology we got does indeed
-	// conform to the guidelines set forth in
-	// http://conwaylife.com/wiki/Catagolue_naming_conventions . If it does
-	// not, this will not produce a valid topology that tools such as Golly
-	// will understand, but there's little we can do about that.
-	if(params["topology"])
-		// don't you wish Javascript had an equivalent of Perl's tr/// 
-		// operator?
-		formattedrule += ":" + params["topology"].replace("x", ",").replace("f", "*").replace("p", "+");
-
-	return formattedrule;
-
-}
-
-// determine whether a given symmetry is "official" or not.
-function isOfficialSymmetry(symmetry) {
-	switch(symmetry) {
-		case "C1":
-		case "C2_1":
-		case "C2_2":
-		case "C2_4":
-		case "C4_1":
-		case "C4_4":
-		case "D2_+1":
-		case "D2_+2":
-		case "D2_x":
-		case "D4_+1":
-		case "D4_+2":
-		case "D4_+4":
-		case "D4_x1":
-		case "D4_x4":
-		case "D8_1":
-		case "D8_4":
-		case "8x32":
-		case "4x64":
-		case "2x128":
-		case "1x256":
-		case "SS":
-			return true;
-
-		default:
-			return false;
-
-	}
-}
-
-// determine whether a given symmetry is a test symmetry. By convention, all
-// test symmetries should end in _Test (case-insensitively), but the under-
-// score has not always been included, e.g. in 
-// https://catagolue.appspot.com/census/b3s23/75pTEST .
-function isTestSymmetry(symmetry) {
-	return (symmetry.slice(-4).toLowerCase() == "test");
-}
-
 /***********************
  * Major functionality *
  ***********************/
@@ -436,7 +232,14 @@ function addNavLinks(params) {
 	navigationParagraph.appendChild(document.createTextNode("You are here: "));
 	navigationParagraph.appendChild(makeLink("/census/", "Census"));
 	navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
-	navigationParagraph.appendChild(makeLink("/census/" + rule, rule));
+
+	var ruleLink = makeLink("/census/" + rule, rule);
+
+	// make sure layout doesn't break for rules such as 
+	// B2ekin3cekanyqjr4cekainyqjrtwz5cekainyqjr6cekain7ce8/
+	// S01ce2cekain3cekainyqjr4cekainyqjrtwz5cekainyqjr6cekain7ce8.
+	ruleLink.style.wordBreak = "break-all"; // overflowWrap = "break-word";
+	navigationParagraph.appendChild(ruleLink);
 
 	// symmetry may be null if we're on the rule's "pick-a-symmetry" overview page.
 	if(symmetry) {
@@ -466,11 +269,22 @@ function addNavLinks(params) {
 				navigationParagraph.appendChild(document.createTextNode(breadcrumbSeparator));
 				navigationParagraph.appendChild(makeLink("/census/" + rule + "/" + symmetry + "/" + prefix + "?offset=" + offset, minimumIndex.toString() + "-" + maximumIndex.toString()));
 			}
-
 		}
-
 	}
+}
 
+function commifyNumbers(params) {
+
+	// if we have a prefix, we're looking at an overview page, e.g. "b3s23/C1/xs4".
+	if(params["prefix"]) {
+		var fourthChildren = document.querySelectorAll("td:nth-child(4)");
+		for(var i = 0; i < fourthChildren.length; i++) {
+			fourthChildren[i].textContent = commify(fourthChildren[i].textContent);
+
+			// this really doesn't below here, but it's convenient.
+			fourthChildren[i].style.textAlign = "right";
+		}
+	}
 }
 
 // adjust census title (both the document title and the main title heading)
@@ -499,6 +313,11 @@ function adjustTitle(params) {
 
 	// adjust title heading
 	titleHeading.appendChild(document.createTextNode(titleAmendment));
+
+	// word-wrap title heading, to avoid breakage on such rulesyms as
+	// B2ekin3cekanyqjr4cekainyqjrtwz5cekainyqjr6cekain7ce8/
+	// S01ce2cekain3cekainyqjr4cekainyqjrtwz5cekainyqjr6cekain7ce8/C1 .
+	titleHeading.style.wordBreak = "break-all"; // overflowWrap = "break-word";
 
 	// adjust document title. We could try splicing in the titleAmendment, but
 	// it's easier to just create the whole thing anew.
@@ -535,8 +354,8 @@ function adjustIntroParagraph(params) {
 		// 0, however.
 		if(numSoups) {
 			var introParagraphAmendment  = " (⌀ " 
-				+ commify((numObjects / numSoups).toFixed(2), numberSeparator) + " objects/soup, "
-				+ commify((numSoups   / numHauls).toFixed(0), numberSeparator) + " soups/haul)."
+				+ commify((numObjects / numSoups).toFixed(2)) + " objects/soup, "
+				+ commify((numSoups   / numHauls).toFixed(0)) + " soups/haul)."
 
 			// remove trailing period...
 			introParagraph.lastChild.textContent = introParagraph.lastChild.textContent.replace(/\.$/, "");

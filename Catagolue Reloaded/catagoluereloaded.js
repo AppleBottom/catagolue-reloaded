@@ -9,15 +9,6 @@
 
 // "On second thought, let's not hack in Javascript. 'tis a silly language."
 
-// separators used for breadcrumb navigation links and search links
-var breadcrumbSeparator = " » "; // Alternatively: > or ›
-var genericSeparator    = " • ";
-
-// symbols to use for collapsed/expanded comments. These should match the
-// values in scripts/comments.js .
-var commentCollapsedSymbol = "▶ " // U+25B6 BLACK RIGHT-POINTING TRIANGLE
-var commentExpandedSymbol  = "▼ " // U+25BC BLACK DOWN-POINTING TRIANGLE
-
 // number of sample soups to group in a chunk.
 var sampleSoupChunkSize = 5;
 
@@ -30,8 +21,6 @@ searchProviders["ConwayLife forums"] = "http://conwaylife.com/forums/search.php?
 searchProviders["Google"           ] = "https://encrypted.google.com/search?q=";
 
 searchProvidersSOF["Pentadecathlon"] = "http://www.pentadecathlon.com/.sof?find=";
-
-var catagolueBaseUrl = "https://catagolue.appspot.com/";
 
 // width and height of the universe used for RLE conversion. User-configurable
 // (options), with a default of 100x100.
@@ -76,51 +65,9 @@ function MAIN() {
 	}
 }
 
-/****************************
- * General helper functions *
- ****************************/
-
-// upper-case the first character of a string.
-function ucFirst(str) {
-	// guard against empty strings; str[0] will throw an error for those.
-	if (!str) return str;
-
-	return str[0].toUpperCase() + str.slice(1);
-}
-
-// return canonical URL for an object.
-function canonicalObjectUrl(params) {
-	var url = catagolueBaseUrl + "object/" + params["apgcode"] + "/" + params["rule"];
-
-	// symmetry may be null if it could not be parsed from the URL.
-	if(params["symmetry"])
-		url += "/" + params["symmetry"];
-
-	return url;
-}
-
 /*********************************
  * HTML-related helper functions *
  *********************************/
-
-// find the heading containing the object's code
-function findTitleHeading() {
-
-	// find the content div; the heading is (currently) its first H2 child.
-	// note that we really need to search for a H2 here; other functions may
-	// insert elements into the content div before it, notably the breadcrumbs
-	// navigation.
-	var content = document.getElementById("content");
-	if(content)
-		for(var candidate = content.firstElementChild; candidate; candidate = candidate.nextElementSibling) {
-			if(candidate.tagName == "H2")
-				return candidate;
-		}
-
-	// this shouldn't happen unless the page layout changes.
-	return null;
-
-}
 
 // find the H2 beginning the comments section.
 function findCommentsH2() {
@@ -406,88 +353,36 @@ function readParams() {
 	else
 		params["name"] = "";
 
-	// we need the object's SOF representation in several places, so we
-	// compute it here in this function. In order to compute it, we also need
-	// its representation as a pattern (i.e. array), and since we need that
-	// again later to compute the object's RLE representation, we also save
-	// it in the params.
-	//
-	// We'll want the SOF representation both with and without the pattern's
-	// name/Catagolue URL; in order to avoid generating it twice we simply
-	// generate it without first, then augment the representation obtained
-	// with the extra info.
-	//
+	// Convert the apgcode for this object to a "pattern" (an internal 
+	// representation of the object that can later get converted to e.g. RLE).
 	// We only do all this if we a) have an object to work with, and b) it's a
-	// still life (xs), oscillator (xp) or spaceship (xq).
-	if(params["object"])
-		if(/^x[pqs]/.test(params["prefix"])) {
+	// still life (xs), oscillator (xp) or spaceship (xq). 
+	if(/^x[pqs]/.test(params["prefix"])) {
+		if(params["object"]) {
 			params["pattern"] = apgcodeToPattern(params);
-			params["rawSOF" ] = patternToSOF    (params);
-			params["SOF"    ] = augmentSOF      (params);
+
+			// we need the object's SOF representation in several places, so we
+			// compute it here in this function. In order to compute it, we also need
+			// its representation as a pattern (i.e. array), and since we need that
+			// again later to compute the object's RLE representation, we also save
+			// it in the params.
+			//
+			// We'll want the SOF representation both with and without the pattern's
+			// name/Catagolue URL; in order to avoid generating it twice we simply
+			// generate it without first, then augment the representation obtained
+			// with the extra info.
+			//
+			// However, we only do this if we're in an binary rule; SOF is not
+			// intended for multistate rules.
+			if(params["states"] == 2) {
+				params["rawSOF" ] = patternToSOF    (params);
+				params["SOF"    ] = augmentSOF      (params);
+			}
 		}
+	}
 
 	// return final collection of parameters.
 	return params;
-
-}
-
-// create and return a hyperlink
-function makeLink(linkTarget, linkText) {
-
-	// create a new "a" element
-	var link = document.createElement("a");
-
-	link.href        = linkTarget;
-	link.textContent = linkText;
-
-	return link;
-
-}
-
-// insert a new node after a given reference node.
-// FIXME: this should probably check the reference node does, in fact, have a
-// parent.
-function insertAfter(newNode, refNode) {
-
-	// find reference node's next sibling
-	var nextNode = refNode.nextSibling;
-
-	if(nextNode)
-		// if the reference node isn't the last child, insert the new node
-		// before the next sibling node.
-		refNode.parentNode.insertBefore(newNode, nextNode);
-
-	else
-		// if the reference node is the last child, append the new node to the
-		// parent node.
-		refNode.parentNode.appendChild(newNode);
-
-}
-
-// add a new class to a node.
-function addClass(node, className) {
-
-	if(node.getAttribute("class"))
-		node.setAttribute("class", node.getAttribute("class") + " " + className);
-	else
-		node.setAttribute("class", className);
-
-}
-
-// inject a new script into the current page.
-// NOTE: only scripts listed in web_accessible_resources in the manifest file
-// can be injected this way.
-function injectScript(injectedScript) {
-
-	// create a new script element
-	var script = document.createElement("script");
-
-	// script type and source URL
-	script.type = "text/javascript";
-	script.src  = chrome.extension.getURL("scripts/" + injectedScript);
-
-	// append script to document
-	document.getElementsByTagName("head")[0].appendChild(script);
 
 }
 
@@ -505,46 +400,6 @@ function emptyUniverse(bx, by) {
 	}
 
 	return universe;
-}
-
-// convert a rulestring to slashed uppercase notation, e.g. "B3/S23" instead
-// of "b3s23" etc. Generations rules such as g3b3s23 are converted to e.g.
-// 23/3/3, and Larger than Life rules such as r7b65t95s65t114 become e.g.
-// R7,C0,M1,S65..114,B65..95,NM. Note that named rules (e.g. "tlife") are left
-// alone, as are neighborhood conditions in non-totalistic rules in Hensel
-// notation.
-function ruleSlashedUpper(params) {
-
-	var formattedrule;
-
-	if(params["generations"])
-		formattedrule = params["s"] + "/" + params["b"] + "/" + params["states"];
-
-	else if(params["largerthanlife"])
-		formattedrule = "R" + params["range"] + ","
-			              + "C0,M1,"
-			              + "S" + params["smin"] + ".." + params["smax"] + ","
-			              + "B" + params["bmin"] + ".." + params["bmax"] + ","
-			              + "NM";
-
-	else if(params["nontotalistic"] || params["outertotalistic"])
-		formattedrule = "B" + params["b"] + "/S" + params["s"];
-
-	else
-		formattedrule = params["rule"];
-
-	// we cheat a bit here and assume that the topology we got does indeed
-	// conform to the guidelines set forth in
-	// http://conwaylife.com/wiki/Catagolue_naming_conventions . If it does
-	// not, this will not produce a valid topology that tools such as Golly
-	// will understand, but there's little we can do about that.
-	if(params["topology"])
-		// don't you wish Javascript had an equivalent of Perl's tr/// 
-		// operator?
-		formattedrule += ":" + params["topology"].replace("x", ",").replace("f", "*").replace("p", "+");
-
-	return formattedrule;
-
 }
 
 // debugging function: return a pattern object as a string, suitable for
@@ -870,7 +725,7 @@ function patternToRLE(params, patternObject) {
 // SOF strings for still lifes at the very least, so the above isn't too much
 // of an issue in practice.
 function patternToSOF(params) {
-	
+
 	// extract values
 	var states        = params["states" ];
 	var patternObject = params["pattern"];
@@ -884,6 +739,10 @@ function patternToSOF(params) {
 	var bx        = patternObject["bx"       ];
 	var by        = patternObject["by"       ];
 	var oversized = patternObject["oversized"];
+
+	// refuse to encode oversized objects.
+	if(oversized)
+		return null;
 
 	// SOF string
 	var SOF = "";
@@ -1005,6 +864,10 @@ function augmentSOF(params) {
 	var name      = params["name"  ];
 	var SOF       = params["rawSOF"];
 
+	// don't do anything if we don't have a SOF string in the first place.
+	if(SOF == null)
+		return null;
+
 	// add pattern name, if known.
 	if(name)
 		SOF += " (" + ucFirst(name) + ")";
@@ -1044,7 +907,7 @@ function handleSampleSoups(params) {
 	// so we inject it now.
 	injectScript("sampleSoupOverlay.js");
 
-	// furthermore, we need to inject Paul Johnston's MD5, SHA-256 and SHA-256
+	// furthermore, we need to inject Paul Johnston's MD5, SHA-256 and SHA-512
 	// scripts, since Javascript lacks any built-in support for computing 
 	// hashes.
 	injectScript("md5.js");

@@ -26,58 +26,6 @@ function MAIN() {
 
 }
 
-/*********************************
- * HTML-related helper functions *
- *********************************/
-
-// create a new element based on an existing one (there is no built-in way to 
-// simply "convert" an element to a new type).
-// Code: "James", https://stackoverflow.com/a/2207198
-function makeNewElementFromElement(tag, elem) {
-
-    var newElem = document.createElement(tag);
-	var attr    = elem.attributes;
-	var attrLen = attr.length;
-
-    // Copy children 
-    elem = elem.cloneNode(true);
-    while (elem.firstChild) {
-        newElem.appendChild(elem.firstChild);
-    }
-
-    // Copy DOM properties
-    for (var i in elem) {
-        try {
-            var prop = elem[i];
-            if (prop && i !== 'outerHTML' && (typeof prop === 'string' || typeof prop === 'number')) {
-                newElem[i] = elem[i];
-            }
-        } catch(e) { /* some props throw getter errors */ }
-    }
-
-    // Copy attributes
-    for (var i = 0; i < attrLen; i++) {
-        newElem.setAttribute(attr[i].nodeName, attr[i].nodeValue);
-    }
-
-    // Copy inline CSS
-    newElem.style.cssText = elem.style.cssText;
-
-    return newElem;
-}
-
-// adjust an element's width
-function adjustElementWidth(element) {
-
-	// get element's computed style
-	var elementStyle = window.getComputedStyle(element);
-
-	// set minimum width and unset width
-	element.style.minWidth = elementStyle.width;
-	element.style.width    = "unset";
-
-}
-
 /***********************
  * Major functionality *
  ***********************/

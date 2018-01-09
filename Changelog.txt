@@ -1,3 +1,18 @@
+Version 5.2: New: correct sample soups for the following symmetries:
+                 * AB_sha512_25p_Test
+                 * AB_sha512_75p_Test
+             New: add separators to numbers on various pages.
+	     New: align numbers on various pages.
+             Improved: word-wrap title/navlinks for very long rulestrings.
+             Changed: only generate SOF for objects in binary rules.
+	     Changed: don't generate SOF for large objects.
+	     Bugfix: avoid crashing during SOF generation for large objects.
+	     Bugfix: also wrap long apgcodes on haul pages if images are shown.
+             Bugfix: unbreak RLE generation for Generations rules.
+	     Bugfix: sample soup overlay for unnamed objects on haul pages
+	     Internal: move various helper functions to a common library 
+	       script.
+
 Version 5.1: New: correct sample soups for the following symmetries:
                  * MB_bad8x8_test
                  * MB_dense1x8_test
