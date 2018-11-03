@@ -115,6 +115,7 @@ function readParams() {
 	// false.
 	params["largerthanlife" ] = false;
 	params["generations"    ] = false;
+	params["bsfkl"          ] = false;
 	params["nontotalistic"  ] = false;
 	params["outertotalistic"] = false;
 
@@ -171,23 +172,40 @@ function readParams() {
 
 	} else {
 
-		// attempt to extract info on isotropic rules.
-		var matches = /^b([^s]*)s(.*)$/.exec(params["rule"]);
-
-		// note that this will have failed if we're dealing with one of the 
-		// two grandfathered rulenames ("tlife" and "klife"). Since there's
-		// only two, we simply special-case these.
+		// attempt to extract info on BSFKL rules.
+		var matches = /^b([^s]*)s(.*)f(.*)k(.*)l(.*)$/.exec(params["rule"]);
 		if(matches) {
+
+			// yup, it's a BSFKL rule.
+			params["bsfkl"] = true;
+
 			params["b"] = matches[1];
 			params["s"] = matches[2];
-		} else if(params["rule"] == "tlife") {
-			params["b"] = "3";
-			params["s"] = "2-i34q";
-		} else if(params["rule"] == "klife") {
-			params["b"] = "34n";
-			params["s"] = "23";
-		} else
-			return null;
+			params["f"] = matches[3];
+			params["k"] = matches[4];
+			params["l"] = matches[5];
+
+		} else {
+		
+			// attempt to extract info on isotropic rules.
+			var matches = /^b([^s]*)s(.*)$/.exec(params["rule"]);
+
+			// note that this will have failed if we're dealing with one of the 
+			// two grandfathered rulenames ("tlife" and "klife"). Since there's
+			// only two, we simply special-case these.
+			if(matches) {
+				params["b"] = matches[1];
+				params["s"] = matches[2];
+			} else if(params["rule"] == "tlife") {
+				params["b"] = "3";
+				params["s"] = "2-i34q";
+			} else if(params["rule"] == "klife") {
+				params["b"] = "34n";
+				params["s"] = "23";
+			} else
+				return null;
+
+		}
 
 	}
 
