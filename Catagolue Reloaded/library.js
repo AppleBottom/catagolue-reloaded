@@ -234,6 +234,9 @@ function ruleSlashedUpper(params) {
 	else if(params["generations"])
 		formattedrule = params["s"] + "/" + params["b"] + "/" + params["states"];
 
+	else if(params["bsfkl"])
+		formattedrule = "B" + params["b"] + "/S" + params["s"] + "/F" + params["f"] + "/K" + params["k"] + "/L" + params["l"];
+
 	else if(params["nontotalistic"] || params["outertotalistic"])
 		formattedrule = "B" + params["b"] + "/S" + params["s"];
 

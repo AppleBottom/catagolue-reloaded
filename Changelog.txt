@@ -1,3 +1,7 @@
+Version 5.4: New: (basic) support for BSFKL rules.
+
+Version 5.3: New: support for isotropic Generations and LtL-Generations rules.
+
 Version 5.2: New: correct sample soups for the following symmetries:
                  * AB_sha512_25p_Test
                  * AB_sha512_75p_Test

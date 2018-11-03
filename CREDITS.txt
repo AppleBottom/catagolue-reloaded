@@ -1,6 +1,6 @@
 Credits:
 
-Apple Bottom - chief extension wrangler
+Apple Bottom - "what am I even doing here"
 Paul Johnston, Angel Marin, Greg Holt, Andrew Kepert, Ydnar, Lostinet - crypto code
 Peter-Paul Koch, "James" (Stackoverflow), Tim Down (Stackoverflow) - Javascript
 Vikas Bhagwagar - HTML
@@ -15,3 +15,4 @@ Scorbie
 Special thanks to:
 
 Adam P. Goucher - Catagolue mastermind
+John Horton Conway - The Man with The Plan
