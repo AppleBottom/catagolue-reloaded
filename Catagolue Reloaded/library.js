@@ -219,15 +219,20 @@ function ruleSlashedUpper(params) {
 
 	var formattedrule;
 
-	if(params["generations"])
-		formattedrule = params["s"] + "/" + params["b"] + "/" + params["states"];
-
-	else if(params["largerthanlife"])
+	if(params["largerthanlife"])
 		formattedrule = "R" + params["range"] + ","
-			              + "C0,M1,"
+			              + "C" + (
+								(params["states"] > 2) ?
+									params["states"] :
+									"0"
+							  ) + ","
+						  + "M1,"
 			              + "S" + params["smin"] + ".." + params["smax"] + ","
 			              + "B" + params["bmin"] + ".." + params["bmax"] + ","
 			              + "NM";
+
+	else if(params["generations"])
+		formattedrule = params["s"] + "/" + params["b"] + "/" + params["states"];
 
 	else if(params["nontotalistic"] || params["outertotalistic"])
 		formattedrule = "B" + params["b"] + "/S" + params["s"];

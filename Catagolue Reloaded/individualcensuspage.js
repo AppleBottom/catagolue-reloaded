@@ -140,16 +140,34 @@ function readParams() {
 	} else if(params["rule"].substr(0, 1) == "g") {
 		params["generations"] = true;
 
-		// attempt to extract info on Generations rules. If this doesn't work,
-		// bail out.
-		var matches = /^g(\d+)b([^s]*)s(.*)$/.exec(params["rule"]);
+		// this might be an LtL Generations rule, so try to parse that first.
+		var matches = /^g(\d+)r(\d+)b(\d*)t(\d*)s(\d*)t(\d*)$/.exec(params["rule"]);
 
 		if(matches) {
+
+			// yup, it's an LtL rule.
+			params["largerthanlife"] = true;
+
 			params["states"] = matches[1];
-			params["b"     ] = matches[2];
-			params["s"     ] = matches[3];
-		} else
-			return null;
+			params["range" ] = matches[2];
+			params["bmin"  ] = matches[3];
+			params["bmax"  ] = matches[4];
+			params["smin"  ] = matches[5];
+			params["smax"  ] = matches[6];
+
+		} else {
+
+			// no? Maybe it's a "regular" generations rule then.
+			var matches = /^g(\d+)b([^s]*)s(.*)$/.exec(params["rule"]);
+
+			if(matches) {
+				params["states"] = matches[1];
+				params["b"     ] = matches[2];
+				params["s"     ] = matches[3];
+			} else
+				// still nothing? Give up.
+				return null;
+		}
 
 	} else {
 
@@ -170,7 +188,14 @@ function readParams() {
 			params["s"] = "23";
 		} else
 			return null;
+
+	}
+
+	if(!params["largerthanlife"]) {
 		
+		// if it's not an LtL rule, it might be outer-totalistic, or it might 
+		// not. (Technically, LtL rules of the "usual" form are outer-
+		// totalistic as well.)
 		if(!/^[0-8]*$/.test(params["b"]) || !/^[0-8]*$/.test(params["s"]))
 			params["nontotalistic"  ] = true;
 		else

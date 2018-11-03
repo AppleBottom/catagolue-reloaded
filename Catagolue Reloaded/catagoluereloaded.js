@@ -299,20 +299,38 @@ function readParams() {
 	} else if(params["rule"].substr(0, 1) == "g") {
 		params["generations"] = true;
 
-		// attempt to extract info on Generations rules. If this doesn't work,
-		// bail out.
-		var matches = /^g(\d+)b([^s]*)s(.*)$/.exec(params["rule"]);
+		// this might be an LtL Generations rule, so try to parse that first.
+		var matches = /^g(\d+)r(\d+)b(\d*)t(\d*)s(\d*)t(\d*)$/.exec(params["rule"]);
 
 		if(matches) {
+
+			// yup, it's an LtL rule.
+			params["largerthanlife"] = true;
+
 			params["states"] = matches[1];
-			params["b"     ] = matches[2];
-			params["s"     ] = matches[3];
-		} else
-			return null;
+			params["range" ] = matches[2];
+			params["bmin"  ] = matches[3];
+			params["bmax"  ] = matches[4];
+			params["smin"  ] = matches[5];
+			params["smax"  ] = matches[6];
+
+		} else {
+
+			// no? Maybe it's a "regular" generations rule then.
+			var matches = /^g(\d+)b([^s]*)s(.*)$/.exec(params["rule"]);
+
+			if(matches) {
+				params["states"] = matches[1];
+				params["b"     ] = matches[2];
+				params["s"     ] = matches[3];
+			} else
+				// still nothing? Give up.
+				return null;
+		}
 
 	} else {
 
-		// attempt to extract info on isotropic rules.
+		// attempt to extract info on isotropic (including outer-totalistic) rules.
 		var matches = /^b([^s]*)s(.*)$/.exec(params["rule"]);
 
 		// note that this will have failed if we're dealing with one of the 
