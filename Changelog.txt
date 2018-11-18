@@ -1,3 +1,8 @@
+Version 5.5: Removed: sample soup sorting by symmetry (now handled by vanilla
+               Catagolue)
+	     Removed: word-wrap long apgcodes (now handled by vanilla 
+	       Catagolue)
+
 Version 5.4: New: (basic) support for BSFKL rules.
 
 Version 5.3: New: support for isotropic Generations and LtL-Generations rules.
