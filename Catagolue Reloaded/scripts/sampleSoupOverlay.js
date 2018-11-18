@@ -82,7 +82,15 @@ function sampleSoupToArray(lines) {
 
 }
 
-function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
+// FIXME: reinstate soupNumber and totalSoups parameters once these are passed
+// from catagoluereloaded.js again
+// function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
+function overlaySoup(soupURL, apgcode, name) {
+
+	// FIXME: kludge to avoid having to change the code below while these
+	// aren't passed
+	soupNumber = false;
+	totalSoups = false;
 
 	// regex to extract soup seed etc. from soupURL
 	// FIXME: using \d instead of [0-9] does not work. Why?
@@ -272,6 +280,22 @@ function overlaySoup(soupURL, soupNumber, totalSoups, apgcode, name) {
 				return;
 
 			var sampleSoup         = sampleSoupRequest.responseText;
+
+			// First thing we do, let's kill all the lawyers... actually, no,
+			// let's fix up BSFKL rule specs, since right now (2018-11-03),
+			// Catagolue formats these as e.g. "B35/S2346f01234k23l01234"
+			// rather than "B35/S2346/F01234/K23/L01234". (I.e., the formatter
+			// hasn't been taught about BSFKL rules yet and treats them as
+			// regular outer-totalistic rules.)
+			var firstNewline   = sampleSoup.indexOf("\n");
+			var firstLine      = sampleSoup.substr(0, firstNewline - 1);
+			var remainingLines = sampleSoup.substr(firstNewline);
+
+			var matches = /(B(\d*)\/S(\d*)f(\d*)k(\d*)l(\d*))$/.exec(firstLine);
+			if(matches) {
+				firstLine  = firstLine.replace(matches[1], "B" + matches[2] + "/S" + matches[3] + "/F" + matches[4] + "/K" + matches[5] + "/L" + matches[6]);
+				sampleSoup = firstLine + remainingLines;
+			}
 
 			// Catagolue does not generate correct sample soup RLE for 
 			// inofficial symmetries. Such soups are returned as if the 

@@ -90,46 +90,6 @@ function findCommentsH2() {
 
 }
 
-// find the paragraph containing the sample soup links.
-function findSampleSoupsParagraph() {
-
-	// most elements on Catagolue pages do not have ids etc., so instead we
-	// look for the right h3 tag; the paragraph we want is the following 
-	// element.
-	// NOTE: this may break if Catagolue's page layout changes.
-	var h3s = document.getElementsByTagName("h3");
-	for(var i = 0; i < h3s.length; i++) {
-	  
-		if(h3s[i].textContent == "Sample occurrences") {
-			return h3s[i].nextElementSibling;
-		}
-	}
-
-	// not found?
-	return null;
-
-}
-
-// append a table row containing a hr element to a node (a table, in practice).
-function appendHR(node) {
-
-	var hrRow  = document.createElement("tr");
-	var hrCell = document.createElement("td");
-	var hr     = document.createElement("hr");
-
-	// HACK: hardcoded colspan=3.
-	hrCell.colSpan             = "3";
-	hrCell.style.paddingTop    = "0";
-	hrCell.style.paddingBottom = "0"
-	hr.    style.margin        = "0";
-
-
-	node.  appendChild(hrRow);
-	hrRow. appendChild(hrCell);
-	hrCell.appendChild(hr);
-
-}
-
 // read and return apgcode, rulestring etc.
 function readParams() {
 
@@ -927,15 +887,6 @@ function handleSampleSoups(params) {
 	// regular expression to extract symmetries from sample soup links
 	var symRegex   = /hashsoup\/(.*?)\/.*?\/(.*?)$/;
 
-	// hash of arrays containing sample soup links, grouped by symmetry
-	var soupLinks  = new Object();
-
-	// total number of sample soups
-	var totalSoups = 0;
-  
-	// paragraph holding the sample soups.
-	var sampleSoupsParagraph = findSampleSoupsParagraph();
-
 	// we want to have soup links pop up an overlay with a textarea. In order 
 	// to do this, we set an onclick handler on the links below that calls a
 	// function doing this. This function must live in the document, however,
@@ -955,7 +906,7 @@ function handleSampleSoups(params) {
 
 	// parse links on this page, and convert HTMLCollection to an array so it 
 	// won't be "live" and change underneath us when we remove those links.
-	var links = Array.prototype.slice.call(sampleSoupsParagraph.getElementsByTagName("a"));
+	var links = Array.prototype.slice.call(document.getElementsByTagName("a"));
 
 	for(var i = 0; i < links.length; i++) {
 	  
@@ -964,171 +915,26 @@ function handleSampleSoups(params) {
 	  
 		var matches	= symRegex.exec(linkTarget);
 		if(matches) {
-
-			// there's no autovivification, sigh.
-			if(!soupLinks[matches[1]]) {
-			  soupLinks[matches[1]] = [];
-			}
-
-			totalSoups++;
-			soupLinks[matches[1]].push(link);
-			link.remove();
-		  
-		}
-	}
-
-	// now that all the links are collected and removed, add a table.
-	var table = document.createElement("table");
-	table.id                    = "sampleSoupTable";
-	table.style.backgroundColor = "#a0ddcc";
-	table.style.border          = "2px solid";
-	table.style.borderRadius    = "10px";
-	table.style.width           = "100%";
-
-	// add table headers.
-	var headerRow = document.createElement("tr");
-	table.appendChild(headerRow);
-  
-	var header1 = document.createElement("th");
-	header1.textContent = "Symmetry";
-	headerRow.appendChild(header1);
-  
-	var header2 = document.createElement("th");
-	header2.innerHTML = "#&nbsp;Soups";
-	headerRow.appendChild(header2);
-  
-	var header3 = document.createElement("th");
-	header3.textContent = "Sample soup links";
-	headerRow.appendChild(header3);
-
-	// insert table into page, replacing the old sample soup paragraph.
-	sampleSoupsParagraph.parentNode.replaceChild(table, sampleSoupsParagraph);
-
-	// Compute list of symmetries and sort it, disregarding prefixes.
-	// Don't you wish Javascript had a) better syntax for .map and .sort, to
-	// facilitate Schwartzian transforms, and b) a cmp operator? In Perl, this
-	// would be something like along the lines of the following:
-    // my $symmetries = map  { $_->[0] } 
-	//                  sort { $b->[1] cmp $a->[1] or $b->[0] cmp $a->[0] } 
-	//                  map  { [ m/^(i*(.*))$/ ] } 
-	//                  keys %soupLinks;
-	// which is much more concise.
-	var symmetries = Object.keys(soupLinks)
-		.map(function(element) {
-			var elementWithoutPrefixes = element.replace(/^i*/, "");
-
-			return [ element, elementWithoutPrefixes ];
-		})
-		.sort(function (a, b) {
-			if(a[1] > b[1])
-				return 1;
-			else if(a[1] < b[1])
-				return -1;
-			else
-				if(a[0] > b[0])
-					return 1;
-				else if(a[0] < b[0])
-					return -1;
-				else
-					return 0;
-		})
-		.map(function(element) {
-			return element[0];
-		});
-
-	// iterate through symmetries and add new links.
-	for(var i = 0; i < symmetries.length; i++) {
-
-		var symmetry = symmetries[i];
-		var numSoups = soupLinks[symmetry].length;
-
-		// add a hr between table rows, for the sake of looks.
-		appendHR(table);
-
-		// create a new row holding the soup links for this symmetry.
-		var tableRow = document.createElement("tr");
-		table.appendChild(tableRow);
-
-		// create a table cell indicating the symmetry.
-		var tableCell1 = document.createElement("td");
-
-		// if we don't specify this, then setting word-break: break-all on
-		// the link further down will cause the cell to shrink too much. 200
-		// px is about the largest amount of space that "reasonable" (test)
-		// symmetries require, but the exact number could be changed in the 
-		// future, if necessary.
-		// FIXME: find a better solution for word-breaking long symmetry names
-		// that require this kind of kludge.
-		tableCell1.style.minWidth = "200px";
-
-		tableRow.appendChild(tableCell1);
-
-		// create a link to the main census page for this rulesym.
-		var censusLink = document.createElement("a");
-		censusLink.href        = "/census/" + params["rule"] + "/" + symmetry;
-		censusLink.textContent = symmetry;
-
-		// keep long symmetry names from breaking our layout. See e.g. the
-		// "marquee" symmetry (since deleted, but its sample soups remain)
-		// on https://catagolue.appspot.com/object/xq4_27deee6/b3s23/ .
-		censusLink.style.wordBreak = "break-all";
-
-		tableCell1.appendChild(censusLink);
-
-		// create a table cell indicating the number of sample soup.
-		var tableCell2 = document.createElement("td");
-		tableCell2.textContent = numSoups;
-		tableRow.appendChild(tableCell2);
-
-		// create a table cell holding the sample soup links.
-		var tableCell3 = document.createElement("td");
-		for(var j = 0; j < numSoups; j++) {
-
-			var link = soupLinks[symmetry][j];
+			symmetry = matches[1];
 
 			// modify link so that when the user's browsing with Javascript
 			// enabled, clicking it pops up an overlay with the sample soup
 			// in a textarea.
+			//
 			// NOTE: returning false here keeps the link's href from being
 			// loaded after the function has run. Note further that returning
 			// false FROM the function does not work.
-			link.setAttribute("onclick", 'return !overlaySoup("' + link.href + '", ' + (j + 1).toString() + ', ' + numSoups.toString() + ', "' + apgcode + '", "' + name + '")');
+			// 
+			// FIXME: parse out number of soups for each symmetry again, and identify which one this is.
+			// link.setAttribute("onclick", 'return !overlaySoup("' + link.href + '", ' + (j + 1).toString() + ', ' + numSoups.toString() + ', "' + apgcode + '", "' + name + '")');
+			link.setAttribute("onclick", 'return !overlaySoup("' + link.href + '", "' + apgcode + '", "' + name + '")');
 
 			// also set a title on this link.
-			link.setAttribute("title", symmetry + ": soup " + (j + 1).toString() + " of " + numSoups.toString());
-
-			// put link in this table cell.
-			tableCell3.appendChild(link);
-			tableCell3.appendChild(document.createTextNode("\u00a0")); // U+00A0 NO-BREAK SPACE (=&nbsp;)
-
-			// in order to group sample soup links into chunks, we insert some
-			// extra space after each chunk. Note that U+2003 EM SPACE is non-
-			// breaking, so the regular space following it is necessary to get
-			// proper line-wrapping.
-			if(!((j + 1) % sampleSoupChunkSize)) {
-				tableCell3.appendChild(document.createTextNode("\u2003 ")); // U+2003 EM SPACE (=&emsp;)
-			}
-
+			// FIXME: reenable this once we know how many soups there are and which one this is again.
+			// link.setAttribute("title", symmetry + ": soup " + (j + 1).toString() + " of " + numSoups.toString());
+		  
 		}
-		tableRow.appendChild(tableCell3);
-	  
 	}
-
-	// add another hr before the "totals" row.
-	appendHR(table);
- 
-	// now add a row indicating the total number of sample soups.
-	var totalsRow = document.createElement("tr");
-	table.appendChild(totalsRow);
-  
-	var totals1 = document.createElement("th");
-	totals1.textContent = "Total";
-	totalsRow.appendChild(totals1);
-  
-	var totals2 = document.createElement("th");
-	totals2.innerHTML = totalSoups;
-	totalsRow.appendChild(totals2);
-  
 }
 
 // add textarea with the object in RLE/SOF format.
@@ -1294,19 +1100,6 @@ function addNavLinks(params) {
 	// find heading containing the object's code and main content div.
 	var titleHeading = findTitleHeading();
 	var contentDiv   = titleHeading.parentNode;
-
-	// also modify title heading to wrap particularly long codes such as
-	// xp84_ybiu0okk6k46o8bp4ozyb47o3egf86lklabqjsjqa4ogkczyc11x113wmlggxgglm
-	// zw3iajaqjk46y76s1u2o14441o2u1s6y864kjqajai3zwiv0er8q6he8y08oggy01cjkma
-	// 6amkjc1y1ggo8y08eh6q8re0viz0c4gf8ck3sj426gu1622q5kq2sgw12721xgs2qk5q22
-	// 61ug624js3kc8fg4czy019ld2odw58v2xv08q2qfx4224xfq2q80vx2v85wdo2dl91zy51
-	// 23ap69q32qa51221wgoo8y21221lq22rk1uh23032zy0g8g2ug624js1622q5kq2sgy6gs
-	// 2qk5q2262sj426is0g8gzg08kkld2odw58v2xv08q2qfx1221xfq2q80vx2v85wdo2dlkk
-	// 80gz19o7gphu1ehi3034jqaa512210g88ci7ic88g12215aaqj4303ihe1uhpg7o91z02f
-	// gbmoab43y9o4p6p32323p6p4oy834baombgf2z06226226113y8314ba8c111c8ab413y7
-	// 3116226226zyjg88r5go8o8oglb886kk8g0s4zyj11w12261u2uilp53878bu0v9zyt146
-	// w311311w32
-	titleHeading.style.overflowWrap = "break-word"; // or .style.wordBreak = "break-all"; ?
 
 	// create new paragraphs for navigation and search links.
 	var navigationParagraph = document.createElement("p");
